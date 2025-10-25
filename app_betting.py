@@ -838,6 +838,22 @@ def analyze_and_display(ensemble, match, odds, bankroll, kelly_fraction):
     
     ens = prediction['ensemble']
     
+    # Validar se o ensemble retornou resultados válidos
+    if not ens or ens.get('prob_casa') is None:
+        st.error("❌ Não foi possível gerar predições. Os modelos falharam ao treinar.")
+        st.warning("⚠️ **Possíveis causas:**")
+        st.markdown("""
+        1. **API Key não configurada** - Configure em Settings > Secrets
+        2. **Dados insuficientes** - A API pode não ter dados históricos
+        3. **Limite de requisições** - Aguarde 1 minuto e tente novamente
+        
+        **Como resolver:**
+        - Configure a API Key nos Secrets (veja documentação)
+        - Verifique se a liga selecionada está disponível
+        - Aguarde alguns minutos e recarregue a página
+        """)
+        return
+    
     # Exibe probabilidades do modelo
     st.success("✅ Análise concluída!")
     
