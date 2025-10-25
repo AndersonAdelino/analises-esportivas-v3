@@ -11,13 +11,38 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from api_client import FootballDataClient
 from ensemble import EnsembleModel
 from betting_tools import analyze_bet, print_bet_analysis
 from bingo_analyzer import BingoAnalyzer
 import config
 import numpy as np
+
+# Fuso horário de Brasília (UTC-3)
+BRASILIA_TZ = timezone(timedelta(hours=-3))
+
+
+def convert_to_brasilia_time(utc_date_str):
+    """
+    Converte data UTC para horário de Brasília (UTC-3)
+    
+    Args:
+        utc_date_str: String de data em formato ISO (ex: "2025-10-26T15:00:00Z")
+    
+    Returns:
+        String formatada no horário de Brasília (ex: "26/10/2025 12:00")
+    """
+    try:
+        # Parse da data UTC
+        utc_date = datetime.fromisoformat(utc_date_str.replace('Z', '+00:00'))
+        # Converter para Brasília
+        brasilia_date = utc_date.astimezone(BRASILIA_TZ)
+        # Formatar
+        return brasilia_date.strftime("%d/%m/%Y %H:%M")
+    except:
+        return utc_date_str
+
 
 # Configuração da página
 st.set_page_config(
@@ -571,7 +596,10 @@ def display_team_analysis():
     st.subheader("🗓️ Histórico de Partidas Recentes")
     
     df_matches = pd.DataFrame(matches)
-    df_matches['date'] = pd.to_datetime(df_matches['date']).dt.strftime('%d/%m/%Y')
+    # Converter datas UTC para horário de Brasília
+    df_matches['date'] = df_matches['date'].apply(
+        lambda x: convert_to_brasilia_time(x) if 'T' in str(x) else pd.to_datetime(x).strftime('%d/%m/%Y')
+    )
     df_matches['placar'] = df_matches.apply(
         lambda x: f"{x['goals_for']}-{x['goals_against']}", axis=1
     )
@@ -746,9 +774,8 @@ def display_match_selector(matches):
     # Formata para exibição
     match_options = []
     for match in matches:
-        date_obj = datetime.fromisoformat(match['date'].replace('Z', '+00:00'))
-        date_str = date_obj.strftime("%d/%m/%Y %H:%M")
-        match_str = f"{match['home_team']} vs {match['away_team']} - {date_str}"
+        date_str = convert_to_brasilia_time(match['date'])
+        match_str = f"{match['home_team']} vs {match['away_team']} - {date_str} (Brasília)"
         match_options.append(match_str)
     
     # Seletor
@@ -1136,6 +1163,7 @@ def main():
         
         # Busca partidas
         st.subheader(f"📅 Próximas Partidas - {selected_league_name}")
+        st.caption("🕐 Horários em UTC-3 (Brasília)")
         
         with st.spinner("Buscando próximas partidas..."):
             matches = get_upcoming_matches(selected_league_code)
