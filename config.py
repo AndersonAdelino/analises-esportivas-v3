@@ -8,7 +8,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # API Configuration
-FOOTBALL_DATA_API_KEY = os.getenv('FOOTBALL_DATA_API_KEY', '')
+# Tenta ler do Streamlit Secrets primeiro, depois do .env
+try:
+    import streamlit as st
+    FOOTBALL_DATA_API_KEY = st.secrets.get('FOOTBALL_DATA_API_KEY', os.getenv('FOOTBALL_DATA_API_KEY', ''))
+except:
+    FOOTBALL_DATA_API_KEY = os.getenv('FOOTBALL_DATA_API_KEY', '')
 BASE_URL = 'https://api.football-data.org/v4'
 
 # Ligas disponíveis
