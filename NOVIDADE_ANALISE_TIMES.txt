@@ -1,0 +1,218 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║     ⚽ NOVA FUNCIONALIDADE: ANÁLISE DETALHADA DE TIMES 📊                    ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  📋 O QUE FOI ADICIONADO?                                                    │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+✅ NOVA ABA "Análise de Times" no aplicativo web
+✅ Histórico completo de qualquer time da Premier League (10-50 jogos)
+✅ 5 TIPOS DE GRÁFICOS INTERATIVOS:
+   🎯 Resultados ao longo do tempo (pontos com código de cores)
+   ⚽ Tendência de gols (média móvel de 5 jogos)
+   📈 Forma e acúmulo de pontos vs esperado
+   🏠 Comparação Casa vs Fora
+   📋 Distribuição de resultados (pizza)
+
+✅ ESTATÍSTICAS DETALHADAS:
+   • Vitórias, empates, derrotas e taxa de vitória
+   • Gols marcados/sofridos e saldo
+   • Média de gols por jogo
+   • Pontos e média por jogo
+   • Forma recente (últimos 5: VVEVD)
+   • % Over 2.5 gols
+   • % BTTS (Both Teams Score)
+   • Desempenho específico em casa e fora
+
+✅ TABELA DE HISTÓRICO:
+   • Todas as partidas com data, adversário, local, placar
+   • Código de cores: 🟢 Verde (V) | ⚪ Cinza (E) | 🔴 Vermelho (D)
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  🚀 COMO USAR?                                                               │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+PASSO 1: Instale a nova dependência (Plotly)
+   → Execute: ATUALIZAR_DEPENDENCIAS.bat
+   → OU: pip install plotly==5.18.0
+
+PASSO 2: Inicie o aplicativo
+   → Execute: streamlit run app_betting.py
+   → OU: INICIAR_SERVIDOR.bat
+
+PASSO 3: Acesse a nova funcionalidade
+   → Clique na aba "📊 Análise de Times"
+   → Selecione um time da lista dropdown
+   → Ajuste o número de jogos (slider: 10-50)
+   → Explore os gráficos e estatísticas!
+
+PASSO 4: Use os insights
+   → Analise ambos os times de uma partida
+   → Volte para "🎯 Análise de Apostas"
+   → Tome decisões mais informadas!
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  💡 EXEMPLOS DE USO                                                          │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+CENÁRIO 1: Apostando em Over 2.5
+   1. Analise Time A: 75% Over 2.5, média 2.8 gols/jogo
+   2. Analise Time B: 65% Over 2.5, defesa fraca (1.9 gols sofridos)
+   3. Insight: Alta probabilidade de Over 2.5
+   4. Verifique odds e aposte com confiança!
+
+CENÁRIO 2: Vantagem de mando
+   1. Analise Time A em casa: 85% vitórias, 2.5 gols/jogo
+   2. Analise Time B fora: 25% vitórias, 0.8 gols/jogo
+   3. Insight: Forte favorito jogando em casa
+   4. Aposte em vitória casa com stake maior
+
+CENÁRIO 3: Times em forma diferente
+   1. Time A: Forma VVVVV (5 vitórias seguidas)
+   2. Time B: Forma DDDDE (0 vitórias em 5)
+   3. Insight: Time A em momento excelente
+   4. Odds podem não refletir a diferença atual de forma!
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  📊 GRÁFICOS DISPONÍVEIS                                                     │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+1. 🎯 RESULTADOS AO LONGO DO TEMPO
+   • Mostra cada jogo cronologicamente
+   • Pontos: 3 (vitória), 1 (empate), 0 (derrota)
+   • Verde = V | Cinza = E | Vermelho = D
+   • Hover: veja adversário, placar e data
+
+2. ⚽ TENDÊNCIA DE GOLS
+   • Média móvel de 5 jogos
+   • Linha verde: gols marcados
+   • Linha vermelha: gols sofridos
+   • Identifica fases ofensivas/defensivas
+
+3. 📈 FORMA (PONTOS ACUMULADOS)
+   • Pontos reais vs pontos esperados
+   • Linha azul: desempenho real
+   • Linha cinza: expectativa (1.5 pts/jogo)
+   • Acima = melhor que média | Abaixo = pior
+
+4. 🏠 CASA VS FORA
+   • Compara vitórias, gols marcados e sofridos
+   • Azul = Casa | Vermelho = Fora
+   • Identifica dependência do mando
+
+5. 📋 DISTRIBUIÇÃO DE RESULTADOS
+   • Gráfico pizza: % V | E | D
+   • Verde = vitórias | Cinza = empates | Vermelho = derrotas
+   • Visualização rápida do perfil
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  📚 DOCUMENTAÇÃO                                                             │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+📖 GUIA_ANALISE_TIMES.md
+   → Guia completo de uso com dicas de análise
+
+📖 ESTRUTURA_ANALISE_TIMES.md
+   → Arquitetura técnica e estrutura do código
+
+📖 ATUALIZACAO_HISTORICO_TIMES.md
+   → Resumo completo da atualização
+
+📖 README.md
+   → Atualizado com novas funcionalidades
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  🔧 ARQUIVOS MODIFICADOS/CRIADOS                                             │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+MODIFICADOS:
+   ✏️ app_betting.py - Adicionadas funções de análise e gráficos
+   ✏️ requirements.txt - Adicionado plotly==5.18.0
+   ✏️ README.md - Documentação atualizada
+
+CRIADOS:
+   📄 GUIA_ANALISE_TIMES.md
+   📄 ESTRUTURA_ANALISE_TIMES.md
+   📄 ATUALIZACAO_HISTORICO_TIMES.md
+   📄 ATUALIZAR_DEPENDENCIAS.bat
+   📄 TESTAR_NOVA_FUNCIONALIDADE.bat
+   📄 NOVIDADE_ANALISE_TIMES.txt (este arquivo)
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  ⚡ QUICK START                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Para começar AGORA em 3 comandos:
+
+   1. ATUALIZAR_DEPENDENCIAS.bat
+   2. TESTAR_NOVA_FUNCIONALIDADE.bat
+   3. Clique na aba "📊 Análise de Times"
+
+   🎉 Pronto! Explore à vontade!
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  💰 BENEFÍCIOS PARA APOSTADORES                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+✅ Decisões mais informadas
+✅ Identificação de padrões não capturados pelos modelos
+✅ Análise visual e intuitiva
+✅ Comparação rápida entre times
+✅ Estatísticas específicas para apostas (Over/Under, BTTS)
+✅ Avaliação de forma recente
+✅ Identificação de mando de campo importante
+✅ Confiança aumentada nas apostas
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  🎯 FLUXO RECOMENDADO                                                        │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+   [Ver Partida] → [Análise de Apostas]
+         ↓
+   [Analisar Time Casa] → [Análise de Times]
+         ↓
+   [Analisar Time Fora] → [Análise de Times]
+         ↓
+   [Insights + Dados] → [Voltar para Análise de Apostas]
+         ↓
+   [Inserir Odds]
+         ↓
+   [Sistema calcula EV]
+         ↓
+   [Recomendação com Kelly]
+         ↓
+   [Apostar com CONFIANÇA! 💰]
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  ⚠️ OBSERVAÇÕES IMPORTANTES                                                  │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+• Cache de 1 hora para otimizar performance
+• API gratuita tem limite de requisições (10/min)
+• Histórico limitado aos dados disponíveis na API
+• Gráficos são totalmente interativos (zoom, pan, hover)
+• Dados atualizados automaticamente
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  🏆 RESUMO                                                                   │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+A nova funcionalidade de Análise de Times transforma o Value Betting Analyzer
+em uma ferramenta COMPLETA de análise esportiva, combinando:
+
+   🤖 Modelos Preditivos (Dixon-Coles, Off-Def, Heurísticas)
+   💰 Value Betting (EV + Kelly Criterion)
+   📊 Análise Visual Detalhada (Gráficos e Estatísticas)
+   🎯 Interface Intuitiva (Streamlit)
+
+RESULTADO: Decisões de apostas mais inteligentes e lucrativas!
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║            💚 Aposte com responsabilidade e dados! 💚                        ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+

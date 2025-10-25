@@ -1,0 +1,205 @@
+================================================================================
+   💰 SISTEMA DE GERENCIAMENTO DE BANCA - GUIA RÁPIDO
+================================================================================
+
+🎉 NOVO RECURSO IMPLEMENTADO!
+
+Agora você pode gerenciar sua banca de apostas de forma completa:
+
+✅ Salvar sua banca real
+✅ Registrar apostas com 1 clique
+✅ Acompanhar apostas pendentes
+✅ Finalizar apostas automaticamente
+✅ Ver histórico completo
+✅ Acompanhar crescimento e ROI
+
+================================================================================
+📋 COMO USAR
+================================================================================
+
+1️⃣ PRIMEIRA VEZ - CONFIGURAR BANCA:
+
+   a) Execute o app: streamlit run app_betting.py
+   b) Vá para a aba "💰 Gerenciamento de Banca"
+   c) Digite o valor inicial (ex: R$ 1.000,00)
+   d) Clique em "Configurar Banca"
+
+2️⃣ FAZER ANÁLISE E APOSTAR:
+
+   a) Vá para "🎯 Análise de Apostas"
+   b) Selecione uma partida
+   c) Insira as odds da casa
+   d) Clique em "ANALISAR APOSTAS"
+   e) Veja as recomendações de value bets
+   f) Clique em "APOSTAR" na recomendação desejada
+   g) O sistema registra automaticamente e deduz da banca!
+
+3️⃣ ACOMPANHAR APOSTAS PENDENTES:
+
+   a) Vá para "💰 Gerenciamento de Banca"
+   b) Clique na aba "⏳ Apostas Pendentes"
+   c) Veja todas suas apostas em aberto
+
+4️⃣ FINALIZAR APOSTA (APÓS O JOGO):
+
+   a) Em "Apostas Pendentes", expanda a aposta
+   b) Selecione o resultado:
+      - ✅ Ganhou
+      - ❌ Perdeu
+      - ⚪ Cancelada
+   c) Clique em "Confirmar Resultado"
+   d) O saldo atualiza automaticamente!
+
+5️⃣ VER HISTÓRICO E ESTATÍSTICAS:
+
+   - Histórico: Veja todas apostas passadas
+   - Estatísticas: Taxa de acerto, ROI, lucro total
+   - Evolução: Gráfico de crescimento da banca
+
+================================================================================
+🧪 TESTAR O SISTEMA
+================================================================================
+
+Execute o script de teste para ver o sistema funcionando:
+
+   python test_bankroll_system.py
+
+Isso irá:
+- Criar uma banca de teste
+- Registrar 3 apostas
+- Finalizar as apostas
+- Mostrar estatísticas
+- Demonstrar todas as funcionalidades
+
+================================================================================
+📊 EXEMPLO PRÁTICO
+================================================================================
+
+CENÁRIO: Você tem R$ 1.000 e encontrou um value bet
+
+1. Sistema analisa: Arsenal vs Chelsea
+   - Modelo diz: 55% chance Arsenal ganhar
+   - Casa oferece: 2.20 (implica 45.5%)
+   - EV: +5.5% (VALUE BET!)
+   - Kelly recomenda: R$ 25 (2.5% da banca)
+
+2. Você clica em "APOSTAR R$ 25"
+   - Aposta registrada ✅
+   - Banca agora: R$ 975
+
+3. Jogo termina, Arsenal ganha 2-1
+   - Você vai em "Apostas Pendentes"
+   - Seleciona "Ganhou"
+   - Confirma
+   
+4. Sistema atualiza automaticamente:
+   - Lucro: R$ 30 (25 × 1.20)
+   - Nova banca: R$ 1.030
+   - ROI: +3.0%
+
+================================================================================
+📁 ARQUIVOS DO SISTEMA
+================================================================================
+
+NOVOS ARQUIVOS:
+- bankroll_manager.py             → Gerenciador de banca (SQLite)
+- test_bankroll_system.py         → Script de teste
+- docs/GUIA_GERENCIAMENTO_BANCA.md → Guia completo
+- data/bankroll.db                → Banco de dados (criado automaticamente)
+
+ARQUIVOS ATUALIZADOS:
+- app_betting.py                  → Nova aba de gerenciamento
+- requirements.txt                → (sem mudanças, SQLite é nativo)
+
+================================================================================
+💡 DICAS IMPORTANTES
+================================================================================
+
+1. KELLY FRACTION:
+   - 0.25 (25%) = Conservador (recomendado)
+   - 0.50 (50%) = Moderado
+   - 1.00 (100%) = Agressivo (NÃO recomendado)
+
+2. GERENCIAMENTO:
+   - Nunca aposte mais de 5% da banca em uma aposta
+   - Registre TODAS as apostas (até as perdedoras)
+   - Finalize apostas assim que souber o resultado
+   - Faça backup do arquivo data/bankroll.db
+
+3. VALUE BETTING:
+   - Aposte apenas quando EV% > 0
+   - Mais importante que odds altas é o value (edge)
+   - Paciência: nem toda partida terá value
+   - Long run: 45-55% de acerto pode ser lucrativo
+
+4. ROI:
+   - 5-10% ao longo do tempo é excelente
+   - ROI de curto prazo varia muito
+   - Avalie performance em 100+ apostas
+
+================================================================================
+⚠️ AVISOS
+================================================================================
+
+- Backup: Faça backup regular de data/bankroll.db
+- Resetar: "Resetar Banca" DELETA TUDO (use com cuidado)
+- Banco SQLite: Não modifique manualmente
+- Saldo Real: Sistema usa valores reais após configuração
+
+================================================================================
+🔧 CONFIGURAÇÕES AVANÇADAS
+================================================================================
+
+Na aba "Gerenciamento de Banca" > "Configurações Avançadas":
+
+- ADICIONAR FUNDOS: Depositar mais na banca
+- REMOVER FUNDOS: Sacar lucros
+- RESETAR BANCA: Começar do zero (CUIDADO!)
+
+================================================================================
+📞 SUPORTE E DOCUMENTAÇÃO
+================================================================================
+
+Guia Completo:       docs/GUIA_GERENCIAMENTO_BANCA.md
+Script de Teste:     python test_bankroll_system.py
+Documentação Geral:  docs/README.md
+Início Rápido:       docs/INICIO_RAPIDO.md
+
+================================================================================
+🎯 RESPOSTA À SUA PERGUNTA: STREAMLIT OU FLASK?
+================================================================================
+
+DECISÃO: MANTIDO STREAMLIT ✅
+
+RAZÕES:
+1. ✅ Implementação rápida e elegante
+2. ✅ SQLite resolve persistência perfeitamente
+3. ✅ Interface bonita out-of-the-box
+4. ✅ Adequado para uso pessoal/pequeno grupo
+5. ✅ Fácil de hospedar (Streamlit Cloud, Heroku)
+
+QUANDO MIGRAR PARA FLASK:
+- Múltiplos usuários simultâneos (concorrência)
+- API REST necessária
+- Autenticação robusta
+- Escalabilidade para produção
+- Customização extrema de UI
+
+POR ENQUANTO: Streamlit é PERFEITO para suas necessidades! 🎉
+
+================================================================================
+🚀 COMECE AGORA!
+================================================================================
+
+1. Execute o teste:
+   python test_bankroll_system.py
+
+2. Abra o aplicativo:
+   streamlit run app_betting.py
+
+3. Configure sua banca e comece a apostar com inteligência!
+
+================================================================================
+                        BOA SORTE! 🍀💰
+================================================================================
+

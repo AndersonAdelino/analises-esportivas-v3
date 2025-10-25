@@ -1,0 +1,204 @@
+================================================================================
+                    COMO USAR OS EXECUTAVEIS (.BAT)
+================================================================================
+
+IMPORTANTE: Todos os arquivos .bat estao na raiz do projeto.
+Basta dar DUPLO CLIQUE em qualquer um deles!
+
+================================================================================
+                            PRIMEIRO USO
+================================================================================
+
+1. INSTALAR_DEPENDENCIAS.bat
+   |
+   +--> Instala tudo que voce precisa
+   |    Tempo: ~2-3 minutos
+   |
+   V
+
+2. Criar arquivo .env
+   |
+   +--> Abra Bloco de Notas
+   |    Cole: FOOTBALL_DATA_API_KEY=sua_chave_aqui
+   |    Salve como: .env (na raiz do projeto)
+   |
+   V
+
+3. COLETAR_DADOS.bat
+   |
+   +--> Busca dados da Premier League
+   |    Tempo: ~2-3 minutos
+   |
+   V
+
+4. INICIAR_SERVIDOR.bat
+   |
+   +--> Abre a interface web!
+        Navegador abre automaticamente
+        Comece a analisar apostas!
+
+================================================================================
+                            USO DIARIO
+================================================================================
+
+Para usar o sistema:
+
+    [Duplo clique]
+          |
+          V
+   INICIAR_SERVIDOR.bat
+          |
+          V
+   Aguarde ~10 segundos
+          |
+          V
+   Navegador abre automaticamente!
+          |
+          V
+   Use a interface web
+          |
+          V
+   Feche a janela preta quando terminar
+
+
+================================================================================
+                         ARQUIVOS DISPONIVEIS
+================================================================================
+
+INICIAR_SERVIDOR.bat
+    >> Para iniciar a interface web (USE ESTE!)
+    >> Verificacoes automaticas
+    >> Abre navegador
+
+INICIAR_SERVIDOR_SIMPLES.bat
+    >> Versao rapida sem verificacoes
+    >> Mesmo resultado, mais direto
+
+VERIFICAR_INSTALACAO.bat
+    >> Verifica se tudo esta OK
+    >> Use se tiver problemas
+
+INSTALAR_DEPENDENCIAS.bat
+    >> Instala todas as bibliotecas
+    >> Use na primeira vez ou apos atualizacao
+
+COLETAR_DADOS.bat
+    >> Atualiza dados da Premier League
+    >> Use semanalmente apos rodadas
+
+
+================================================================================
+                        CRIAR ATALHO NA AREA DE TRABALHO
+================================================================================
+
+1. Botao direito em INICIAR_SERVIDOR.bat
+2. "Enviar para" > "Area de trabalho (criar atalho)"
+3. Renomeie para "Value Betting"
+4. Pronto! Duplo clique no atalho quando quiser usar
+
+
+================================================================================
+                             SOLUCAO DE PROBLEMAS
+================================================================================
+
+Erro: "Python nao encontrado"
+    >> Instale Python 3.8+ de https://python.org
+
+Erro: "streamlit nao encontrado"
+    >> Execute: INSTALAR_DEPENDENCIAS.bat
+
+Erro: "Nenhum arquivo encontrado"
+    >> Execute: COLETAR_DADOS.bat
+
+Erro: "API Key invalida"
+    >> Verifique arquivo .env com sua chave
+
+
+Para verificar o que esta errado:
+    >> Execute: VERIFICAR_INSTALACAO.bat
+    >> Veja o que esta [X]
+    >> Siga as instrucoes
+
+
+================================================================================
+                           O QUE CADA UM FAZ
+================================================================================
+
+INICIAR_SERVIDOR.bat:
+    1. Verifica Python
+    2. Verifica Streamlit
+    3. Inicia servidor web
+    4. Abre http://localhost:8501
+    5. Pronto para usar!
+
+COLETAR_DADOS.bat:
+    1. Conecta na API
+    2. Busca ultimos 20 jogos de cada time
+    3. Salva em data/
+    4. Pronto!
+
+VERIFICAR_INSTALACAO.bat:
+    1. Testa Python
+    2. Testa pip
+    3. Testa todas as bibliotecas
+    4. Verifica dados
+    5. Verifica API Key
+    6. Mostra resultado
+
+
+================================================================================
+                              DICAS
+================================================================================
+
+>> Para parar o servidor:
+   Feche a janela preta (terminal)
+   Ou pressione Ctrl+C
+
+>> Para criar atalho rapido:
+   Arraste INICIAR_SERVIDOR.bat para Area de Trabalho
+   (segurando Ctrl+Shift)
+
+>> Primeira execucao demora ~15 segundos
+   Proximas sao mais rapidas (cache)
+
+>> Dados ficam salvos, nao precisa coletar sempre
+   Atualize semanalmente
+
+
+================================================================================
+                        EXEMPLO DE USO COMPLETO
+================================================================================
+
+Dia 1 (Setup):
+    1. Duplo clique: INSTALAR_DEPENDENCIAS.bat
+    2. Criar .env com API Key
+    3. Duplo clique: COLETAR_DADOS.bat
+    4. Duplo clique: INICIAR_SERVIDOR.bat
+    5. Usar interface!
+
+Dia 2+ (Uso normal):
+    1. Duplo clique: INICIAR_SERVIDOR.bat
+    2. Usar interface!
+    3. Fechar quando terminar
+
+Domingo (Apos rodada):
+    1. Duplo clique: COLETAR_DADOS.bat
+    2. Duplo clique: INICIAR_SERVIDOR.bat
+    3. Modelos atualizados automaticamente!
+
+
+================================================================================
+                           TUDO PRONTO!
+================================================================================
+
+Para comecar agora:
+
+    1. Duplo clique em: INICIAR_SERVIDOR.bat
+    2. Aguarde navegador abrir
+    3. Comece a analisar apostas!
+
+Boa sorte! 🎯⚽💰
+
+
+================================================================================
+
