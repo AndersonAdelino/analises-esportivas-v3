@@ -25,6 +25,39 @@ class HeuristicasModel:
         self.df = None
         self.teams = None
         
+    def _load_data_from_api(self, league_code):
+        """Carrega dados diretamente da API"""
+        from api_client import FootballDataClient
+        
+        try:
+            client = FootballDataClient()
+            matches_data = client.get_competition_matches(league_code, status='FINISHED', limit=100)
+            
+            matches_list = []
+            for match in matches_data.get('matches', []):
+                if match['status'] != 'FINISHED':
+                    continue
+                    
+                score = match.get('score', {}).get('fullTime', {})
+                if score.get('home') is None or score.get('away') is None:
+                    continue
+                
+                matches_list.append({
+                    'time_casa': match['homeTeam']['name'],
+                    'time_visitante': match['awayTeam']['name'],
+                    'gols_casa': score['home'],
+                    'gols_visitante': score['away'],
+                    'data': match['utcDate'][:10]
+                })
+            
+            if not matches_list:
+                raise ValueError(f"Nenhuma partida finalizada encontrada")
+            
+            return pd.DataFrame(matches_list)
+        
+        except Exception as e:
+            raise RuntimeError(f"Erro ao buscar dados da API: {e}")
+    
     def load_data(self, league_code=None):
         """
         Carrega dados de partidas
@@ -53,10 +86,10 @@ class HeuristicasModel:
             csv_files = glob('data/all_teams_matches_*.csv')
         
         if not csv_files:
-            raise FileNotFoundError(
-                f"Nenhum arquivo encontrado para {league_code}. "
-                f"Execute primeiro: python get_team_matches.py"
-            )
+            # Sem arquivos locais, tenta buscar da API
+            print(f"Nenhum arquivo local encontrado. Buscando dados da API...")
+            self.df = self._load_data_from_api(league_code)
+            return self
         
         csv_file = max(csv_files, key=os.path.getctime)
         print(f"Carregando dados de: {csv_file}")
