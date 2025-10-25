@@ -58,6 +58,60 @@ class HeuristicasModel:
         except Exception as e:
             raise RuntimeError(f"Erro ao buscar dados da API: {e}")
     
+    def _normalize_data(self, df):
+        """
+        Normaliza dados de time_casa/time_visitante para formato time/adversario
+        
+        Args:
+            df: DataFrame com colunas time_casa, time_visitante, gols_casa, gols_visitante
+            
+        Returns:
+            DataFrame normalizado com colunas time, adversario, gols_marcados, gols_sofridos, resultado, local
+        """
+        # Cria duas linhas para cada partida (uma do ponto de vista de cada time)
+        
+        # Jogos do time da casa
+        jogos_casa = df[['data', 'time_casa', 'time_visitante', 'gols_casa', 'gols_visitante']].copy()
+        if 'competicao' in df.columns:
+            jogos_casa['competicao'] = df['competicao']
+        
+        jogos_casa = jogos_casa.rename(columns={
+            'time_casa': 'time',
+            'time_visitante': 'adversario',
+            'gols_casa': 'gols_marcados',
+            'gols_visitante': 'gols_sofridos'
+        })
+        jogos_casa['local'] = 'Casa'
+        
+        # Jogos do time visitante
+        jogos_fora = df[['data', 'time_casa', 'time_visitante', 'gols_casa', 'gols_visitante']].copy()
+        if 'competicao' in df.columns:
+            jogos_fora['competicao'] = df['competicao']
+        
+        jogos_fora = jogos_fora.rename(columns={
+            'time_visitante': 'time',
+            'time_casa': 'adversario',
+            'gols_visitante': 'gols_marcados',
+            'gols_casa': 'gols_sofridos'
+        })
+        jogos_fora['local'] = 'Fora'
+        
+        # Combina
+        df_normalized = pd.concat([jogos_casa, jogos_fora], ignore_index=True)
+        
+        # Adiciona coluna de resultado
+        def calcular_resultado(row):
+            if row['gols_marcados'] > row['gols_sofridos']:
+                return 'Vitoria'
+            elif row['gols_marcados'] < row['gols_sofridos']:
+                return 'Derrota'
+            else:
+                return 'Empate'
+        
+        df_normalized['resultado'] = df_normalized.apply(calcular_resultado, axis=1)
+        
+        return df_normalized.sort_values('data', ascending=False)
+    
     def load_data(self, league_code=None):
         """
         Carrega dados de partidas
@@ -88,24 +142,29 @@ class HeuristicasModel:
         if not csv_files:
             # Sem arquivos locais, tenta buscar da API
             print(f"Nenhum arquivo local encontrado. Buscando dados da API...")
-            self.df = self._load_data_from_api(league_code)
+            df_raw = self._load_data_from_api(league_code)
+            self.df = self._normalize_data(df_raw)
+            self.teams = sorted(set(self.df['time'].unique()))
+            print(f"Dados carregados: {len(df_raw)} partidas originais, {len(self.df)} linhas processadas, {len(self.teams)} times")
             return self
         
         csv_file = max(csv_files, key=os.path.getctime)
         print(f"Carregando dados de: {csv_file}")
         
-        self.df = pd.read_csv(csv_file)
-        self.df['data'] = pd.to_datetime(self.df['data'])
+        df_raw = pd.read_csv(csv_file)
+        df_raw['data'] = pd.to_datetime(df_raw['data'])
         
         # Filtra pela liga específica
         league_full_name = [info['name'] for name, info in LEAGUES.items() if info['code'] == league_code][0]
-        if 'competicao' in self.df.columns:
+        if 'competicao' in df_raw.columns:
             # Tenta filtrar pelo nome completo da liga
-            self.df = self.df[self.df['competicao'].str.contains(league_full_name.split()[0], na=False, case=False)]
+            df_raw = df_raw[df_raw['competicao'].str.contains(league_full_name.split()[0], na=False, case=False)]
         
-        self.teams = sorted(self.df['time'].unique())
+        # Normaliza os dados
+        self.df = self._normalize_data(df_raw)
+        self.teams = sorted(set(self.df['time'].unique()))
         
-        print(f"Dados carregados: {len(self.df)} partidas, {len(self.teams)} times")
+        print(f"Dados carregados: {len(df_raw)} partidas originais, {len(self.df)} linhas processadas, {len(self.teams)} times")
         
         return self
     

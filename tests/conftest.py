@@ -78,8 +78,9 @@ def trained_heuristicas(sample_match_data):
     sample_match_data.to_csv(temp_file, index=False)
     
     model = HeuristicasModel()
-    model.df = sample_match_data
-    model.times = set(sample_match_data['time_casa'].unique()) | set(sample_match_data['time_visitante'].unique())
+    # Normaliza os dados antes de atribuir
+    model.df = model._normalize_data(sample_match_data)
+    model.teams = sorted(set(model.df['time'].unique()))
     
     # Limpa arquivo temporário
     if os.path.exists(temp_file):

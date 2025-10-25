@@ -127,8 +127,8 @@ class TestHeuristicas:
         
         assert 'resultado_previsto' in pred
         assert 'confianca' in pred
-        assert 'pontuacao_casa' in pred
-        assert 'pontuacao_fora' in pred
+        assert 'pontos_casa' in pred
+        assert 'pontos_fora' in pred
         assert 'over_under' in pred
         assert 'btts' in pred
     
@@ -136,8 +136,9 @@ class TestHeuristicas:
         """Testa se resultado é uma das opções válidas"""
         pred = trained_heuristicas.predict_match('Chelsea FC', 'Tottenham Hotspur FC')
         
-        valid_results = ['Vitória Casa', 'Empate', 'Vitória Fora']
-        assert pred['resultado_previsto'] in valid_results
+        # O modelo retorna "Vitoria [TIME]" ou "Empate"
+        resultado = pred['resultado_previsto']
+        assert resultado == 'Empate' or resultado.startswith('Vitoria ')
     
     def test_confianca_range(self, trained_heuristicas):
         """Testa se confiança está em range válido"""
