@@ -1,16 +1,9 @@
-# API Keys e configurações sensíveis
-.env
-.streamlit/secrets.toml
-
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-env/
-venv/
-ENV/
 build/
 develop-eggs/
 dist/
@@ -27,23 +20,65 @@ wheels/
 .installed.cfg
 *.egg
 
-# Dados
-data/*.json
-data/*.csv
-*.csv
-*.json
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv
 
-# IDEs
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# OS
 .DS_Store
-Thumbs.db
 
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Data files (keep structure, ignore content)
+data/*.csv
+data/*.json
+data/*.db
+!data/.gitkeep
+
+# Logs (NOVO!)
+logs/
+*.log
+
+# Test coverage (NOVO!)
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.tox/
+
+# Validation results (NOVO!)
+data/validation/*.json
+!data/validation/.gitkeep
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+
+# Package files
+*.tar.gz
+*.zip

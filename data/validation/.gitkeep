@@ -1,0 +1,3 @@
+# Este arquivo mantém o diretório data/validation/ no git
+# Os arquivos JSON de validação são ignorados pelo .gitignore
+
