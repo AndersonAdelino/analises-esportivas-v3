@@ -196,7 +196,7 @@ plotly==5.18.0
 
 ### Estratégia de Cache
 ```python
-@st.cache_data(ttl=3600)  # 1 hora
+@st.cache_data(ttl=86400)  # 24 horas
   ├── get_all_teams()
   ├── get_upcoming_matches()
   └── get_team_history()

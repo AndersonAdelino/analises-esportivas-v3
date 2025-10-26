@@ -99,7 +99,7 @@ def load_ensemble(league_code=None):
     return ensemble
 
 
-@st.cache_data(ttl=3600)  # Cache por 1 hora
+@st.cache_data(ttl=86400)  # Cache por 24 horas
 def get_upcoming_matches(league_code=None):
     """
     Busca próximas partidas de uma liga
@@ -134,7 +134,7 @@ def get_upcoming_matches(league_code=None):
         return []
 
 
-@st.cache_data(ttl=3600)  # Cache por 1 hora
+@st.cache_data(ttl=86400)  # Cache por 24 horas
 def get_all_teams(league_code=None):
     """
     Busca todos os times de uma liga
@@ -164,7 +164,7 @@ def get_all_teams(league_code=None):
         return []
 
 
-@st.cache_data(ttl=3600)  # Cache por 1 hora
+@st.cache_data(ttl=86400)  # Cache por 24 horas
 def get_team_history(team_id: int, limit: int = 50):
     """Busca histórico de partidas de um time"""
     try:
