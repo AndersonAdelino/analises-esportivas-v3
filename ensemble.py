@@ -115,6 +115,11 @@ class EnsembleModel:
         if self.models['dixon_coles']:
             try:
                 pred_dc = self.models['dixon_coles'].predict_match(home_team, away_team)
+                
+                # Debug: verificar se prob_matrix existe
+                if 'prob_matrix' not in pred_dc:
+                    print(f"AVISO: Dixon-Coles não retornou 'prob_matrix'. Keys disponíveis: {pred_dc.keys()}")
+                
                 predictions['dixon_coles'] = {
                     'prob_casa': pred_dc['prob_home_win'],
                     'prob_empate': pred_dc['prob_draw'],
@@ -124,14 +129,28 @@ class EnsembleModel:
                     'top_scores': pred_dc.get('top_scores', []),
                     'score_matrix': pred_dc.get('prob_matrix', None)
                 }
+                
+                # Debug: confirmar se score_matrix foi atribuído
+                if predictions['dixon_coles']['score_matrix'] is not None:
+                    print(f"✓ Dixon-Coles: score_matrix atribuído com shape {predictions['dixon_coles']['score_matrix'].shape}")
+                else:
+                    print(f"✗ Dixon-Coles: score_matrix é None")
+                    
             except Exception as e:
                 print(f"Erro em Dixon-Coles: {e}")
+                import traceback
+                traceback.print_exc()
                 predictions['dixon_coles'] = None
         
         # Offensive-Defensive
         if self.models['offensive_defensive']:
             try:
                 pred_od = self.models['offensive_defensive'].predict_match(home_team, away_team)
+                
+                # Debug: verificar se prob_matrix existe
+                if 'prob_matrix' not in pred_od:
+                    print(f"AVISO: Offensive-Defensive não retornou 'prob_matrix'. Keys disponíveis: {pred_od.keys()}")
+                
                 predictions['offensive_defensive'] = {
                     'prob_casa': pred_od['prob_home_win'],
                     'prob_empate': pred_od['prob_draw'],
@@ -141,8 +160,17 @@ class EnsembleModel:
                     'top_scores': pred_od.get('top_scores', []),
                     'score_matrix': pred_od.get('prob_matrix', None)
                 }
+                
+                # Debug: confirmar se score_matrix foi atribuído
+                if predictions['offensive_defensive']['score_matrix'] is not None:
+                    print(f"✓ Offensive-Defensive: score_matrix atribuído com shape {predictions['offensive_defensive']['score_matrix'].shape}")
+                else:
+                    print(f"✗ Offensive-Defensive: score_matrix é None")
+                    
             except Exception as e:
                 print(f"Erro em Offensive-Defensive: {e}")
+                import traceback
+                traceback.print_exc()
                 predictions['offensive_defensive'] = None
         
         # Heurísticas
@@ -298,14 +326,24 @@ class EnsembleModel:
         matrices = []
         weights = []
         
+        print(f"\n=== DEBUG: Combinando score matrices ===")
         for model_name in ['dixon_coles', 'offensive_defensive']:
             if model_name in predictions and predictions[model_name] is not None:
                 score_matrix = predictions[model_name].get('score_matrix')
+                print(f"{model_name}: score_matrix é None? {score_matrix is None}")
                 if score_matrix is not None:
+                    print(f"{model_name}: shape = {score_matrix.shape}")
                     matrices.append(score_matrix)
                     weights.append(self.weights[model_name])
+                else:
+                    print(f"{model_name}: Nenhuma matriz encontrada")
+            else:
+                print(f"{model_name}: Modelo não está em predictions ou é None")
+        
+        print(f"Total de matrizes coletadas: {len(matrices)}")
         
         if not matrices:
+            print("AVISO: Nenhuma matriz de placar disponível para combinar")
             return None, []
         
         # Normaliza pesos
