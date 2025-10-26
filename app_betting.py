@@ -1114,11 +1114,10 @@ def main():
         st.info("💡 **Dica:** Use Kelly Fraction de 0.25 para ser conservador.")
     
     # Cria abas principais
-    tab1, tab2, tab3, tab4 = st.tabs([
+    tab1, tab2, tab3 = st.tabs([
         "🎯 Análise de Apostas", 
         "📊 Análise de Times", 
-        "🎰 Bingo (Apostas Múltiplas)",
-        "💰 Value Bets Automáticos"
+        "🎰 Bingo (Apostas Múltiplas)"
     ])
     
     with tab1:
@@ -1205,22 +1204,6 @@ def main():
     
     with tab3:
         display_bingo_analysis()
-    
-    with tab4:
-        # Importa a página de value bets automáticos
-        try:
-            from paginas.value_bets_auto import main as value_bets_main
-            value_bets_main()
-        except Exception as e:
-            st.error(f"❌ Erro ao carregar Value Bets Automáticos: {e}")
-            st.info("""
-            **💡 Para usar esta funcionalidade:**
-            
-            1. Configure ODDS_API_KEY no arquivo .env
-            2. Execute: `python odds_economico.py` para testar
-            
-            Veja: COMO_USAR_ODDS_DIARIAS.md
-            """)
 
 
 if __name__ == "__main__":
