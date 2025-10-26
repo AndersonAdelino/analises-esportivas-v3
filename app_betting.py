@@ -1369,6 +1369,54 @@ def get_data_info(home_team, away_team, league_code):
         away_matches = df[(df['time_casa'] == away_team) | (df['time_visitante'] == away_team)]
         away_count = len(away_matches)
         
+        # Últimos jogos do time da casa
+        home_recent = home_matches.sort_values('data', ascending=False).head(5)
+        home_recent_list = []
+        
+        for _, match in home_recent.iterrows():
+            date_str = match['data'].strftime('%d/%m/%Y')
+            is_home = match['time_casa'] == home_team
+            opponent = match['time_visitante'] if is_home else match['time_casa']
+            
+            if is_home:
+                score = f"{match['gols_casa']}-{match['gols_visitante']}"
+                result = "V" if match['gols_casa'] > match['gols_visitante'] else ("E" if match['gols_casa'] == match['gols_visitante'] else "D")
+            else:
+                score = f"{match['gols_visitante']}-{match['gols_casa']}"
+                result = "V" if match['gols_visitante'] > match['gols_casa'] else ("E" if match['gols_visitante'] == match['gols_casa'] else "D")
+            
+            home_recent_list.append({
+                'date': date_str,
+                'opponent': opponent,
+                'score': score,
+                'result': result,
+                'is_home': is_home
+            })
+        
+        # Últimos jogos do time visitante
+        away_recent = away_matches.sort_values('data', ascending=False).head(5)
+        away_recent_list = []
+        
+        for _, match in away_recent.iterrows():
+            date_str = match['data'].strftime('%d/%m/%Y')
+            is_home = match['time_casa'] == away_team
+            opponent = match['time_visitante'] if is_home else match['time_casa']
+            
+            if is_home:
+                score = f"{match['gols_casa']}-{match['gols_visitante']}"
+                result = "V" if match['gols_casa'] > match['gols_visitante'] else ("E" if match['gols_casa'] == match['gols_visitante'] else "D")
+            else:
+                score = f"{match['gols_visitante']}-{match['gols_casa']}"
+                result = "V" if match['gols_visitante'] > match['gols_casa'] else ("E" if match['gols_visitante'] == match['gols_casa'] else "D")
+            
+            away_recent_list.append({
+                'date': date_str,
+                'opponent': opponent,
+                'score': score,
+                'result': result,
+                'is_home': is_home
+            })
+        
         # Confrontos diretos
         direct_matches = df[
             ((df['time_casa'] == home_team) & (df['time_visitante'] == away_team)) |
@@ -1405,6 +1453,8 @@ def get_data_info(home_team, away_team, league_code):
             'newest_match': newest_match,
             'home_count': home_count,
             'away_count': away_count,
+            'home_recent': home_recent_list,
+            'away_recent': away_recent_list,
             'direct_count': direct_count,
             'direct_matches': direct_list
         }
@@ -1480,10 +1530,50 @@ def analyze_and_display(ensemble, match, odds, bankroll, kelly_fraction):
                 st.code(data_info['file_name'], language=None)
                 st.write(f"Atualizado em: {data_info['file_time'].strftime('%d/%m/%Y %H:%M')}")
             
+            # Histórico recente de cada time
+            st.markdown("---")
+            st.markdown("### 📋 Histórico Recente dos Times")
+            
+            col1, col2 = st.columns(2)
+            
+            # Histórico do time da casa
+            with col1:
+                st.markdown(f"**🏠 {home_team}** (últimos 5 jogos)")
+                
+                if data_info['home_recent']:
+                    for jogo in data_info['home_recent']:
+                        emoji = "🟢" if jogo['result'] == "V" else ("🟡" if jogo['result'] == "E" else "🔴")
+                        resultado_texto = "V" if jogo['result'] == "V" else ("E" if jogo['result'] == "E" else "D")
+                        local = "🏠" if jogo['is_home'] else "✈️"
+                        
+                        st.markdown(
+                            f"{emoji} **{jogo['date']}** {local} vs {jogo['opponent']} - "
+                            f"**{jogo['score']}** ({resultado_texto})"
+                        )
+                else:
+                    st.info(f"Sem dados de {home_team}")
+            
+            # Histórico do time visitante
+            with col2:
+                st.markdown(f"**✈️ {away_team}** (últimos 5 jogos)")
+                
+                if data_info['away_recent']:
+                    for jogo in data_info['away_recent']:
+                        emoji = "🟢" if jogo['result'] == "V" else ("🟡" if jogo['result'] == "E" else "🔴")
+                        resultado_texto = "V" if jogo['result'] == "V" else ("E" if jogo['result'] == "E" else "D")
+                        local = "🏠" if jogo['is_home'] else "✈️"
+                        
+                        st.markdown(
+                            f"{emoji} **{jogo['date']}** {local} vs {jogo['opponent']} - "
+                            f"**{jogo['score']}** ({resultado_texto})"
+                        )
+                else:
+                    st.info(f"Sem dados de {away_team}")
+            
             # Histórico de confrontos diretos
             if data_info['direct_matches']:
                 st.markdown("---")
-                st.markdown("### ⚔️ Últimos Confrontos Diretos")
+                st.markdown("### ⚔️ Confrontos Diretos")
                 st.caption(f"*Resultado do ponto de vista de {home_team}*")
                 
                 for idx, confronto in enumerate(data_info['direct_matches'], 1):
