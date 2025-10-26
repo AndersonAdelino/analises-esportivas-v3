@@ -46,7 +46,7 @@ Projeto de análise de dados esportivos utilizando dados históricos de **múlti
 - ✅ **⚽ Tendências de gols e forma recente**
 - ✅ **🎯 Estatísticas para apostas (Over/Under, BTTS)**
 
-### 💰 Gerenciamento de Banca (NOVO!)
+### 💰 Gerenciamento de Banca
 - ✅ **Configuração e rastreamento de banca real**
 - ✅ **Registro de apostas com 1 clique**
 - ✅ **Acompanhamento de apostas pendentes**
@@ -55,6 +55,28 @@ Projeto de análise de dados esportivos utilizando dados históricos de **múlti
 - ✅ **Estatísticas: Win Rate, ROI, Lucro Total**
 - ✅ **Gráfico de evolução da banca**
 - ✅ **Banco de dados SQLite persistente**
+
+### 💵 Odds API - Busca Automática de Odds (NOVO! 🔥)
+- ✅ **Integração com The Odds API**
+- ✅ **Busca automática de odds de múltiplas casas**
+- ✅ **Comparação automática para encontrar melhores odds**
+- ✅ **Cache inteligente (economiza requisições)**
+- ✅ **Detecção automática de value bets**
+- ✅ **Suporte a 40+ ligas de futebol**
+- ✅ **Mercados: 1X2, Over/Under, BTTS**
+- ✅ **500 requisições/mês grátis**
+- 📖 **Guia completo:** [`COMO_USAR_ODDS_DIARIAS.md`](COMO_USAR_ODDS_DIARIAS.md)
+
+### 💰 Value Bets Automáticos (NOVÍSSIMO! 🌟)
+- ✅ **Página exclusiva no Streamlit**
+- ✅ **Integração automática com Bet365**
+- ✅ **Análise automática de value bets**
+- ✅ **3 mercados: 1X2, Over/Under, BTTS**
+- ✅ **Ordenação por EV ou Probabilidade**
+- ✅ **Top 10 + Lista completa + Estatísticas**
+- ✅ **Download em CSV**
+- ✅ **Filtros avançados**
+- 📖 **Guia:** [`COMO_USAR_VALUE_BETS_AUTO.md`](COMO_USAR_VALUE_BETS_AUTO.md)
 
 ## 🚀 Instalação
 
@@ -401,13 +423,23 @@ python betting_tools.py             # Teste EV e Kelly
 - [📚 Índice Completo](docs/README.md) - Toda a documentação organizada
 - [⚡ Início Rápido](docs/INICIO_RAPIDO.md) - Comece em 3 passos!
 - [💰 Guia Value Betting](docs/GUIA_VALUE_BETTING.md) - Sistema completo
-- [📊 Guia Análise de Times](docs/GUIA_ANALISE_TIMES.md) - **NOVO!** Análise visual
+- [📊 Guia Análise de Times](docs/GUIA_ANALISE_TIMES.md) - Análise visual
 - [🏗️ Estrutura Técnica](docs/ESTRUTURA_ANALISE_TIMES.md) - Arquitetura do sistema
+
+📖 **Odds API (NOVO! 🔥):**
+- [🚀 Como Usar Odds Diárias](COMO_USAR_ODDS_DIARIAS.md) - **Comece aqui!**
+- [⚙️ Setup The Odds API](SETUP_ODDS_API.md) - Configuração em 5 minutos
+- [📖 Guia The Odds API](GUIA_ODDS_API.md) - Guia completo detalhado
 
 **Scripts úteis:**
 ```bash
 ATUALIZAR_DEPENDENCIAS.bat    # Instala Plotly e outras dependências
 TESTAR_NOVA_FUNCIONALIDADE.bat # Testa a nova funcionalidade
+
+# Odds API (NOVO!)
+TESTAR_ODDS_API.bat           # Testa conexão com The Odds API
+COLETAR_ODDS_DIARIAS.bat      # Coleta odds diárias de todas as ligas
+EXEMPLO_INTEGRACAO_ODDS.bat   # Exemplos de integração com modelos
 ```
 
 ---

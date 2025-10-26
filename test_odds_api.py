@@ -20,13 +20,13 @@ from datetime import datetime
 # ==========================================
 
 # Cole sua API Key aqui (grátis: 500 requisições/mês)
-API_KEY = 'SUA_API_KEY_AQUI'  # ← SUBSTITUA AQUI
+API_KEY = 'ae43b69e9ef7398ca4325da3891bc54b'  # ✅ CONFIGURADA!
 
 # Regiões disponíveis
-REGIONS = 'br,us,uk,eu'  # Brasil, USA, UK, Europa
+REGIONS = 'us,uk,eu'  # USA, UK, Europa (br não é válido na API)
 
 # Mercados disponíveis
-MARKETS = 'h2h,totals,btts'  # 1X2, Over/Under, Ambos Marcam
+MARKETS = 'h2h,totals'  # 1X2, Over/Under (btts não disponível no plano gratuito)
 
 # Formato das odds
 ODDS_FORMAT = 'decimal'  # decimal, american, fractional

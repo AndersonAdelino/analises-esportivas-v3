@@ -1,0 +1,94 @@
+======================================
+✅ SUA API KEY FOI CONFIGURADA!
+======================================
+
+API Key: ae43b69e9ef7398ca4325da3891bc54b
+
+🔧 CORREÇÃO APLICADA:
+   - Regiões corrigidas (removido 'br' que não existe)
+   - Agora usa: us,uk,eu (válidas)
+   - Leia: REGIOES_ODDS_API.md para entender
+
+======================================
+OPÇÃO 1: TESTAR AGORA (RÁPIDO)
+======================================
+
+Sua API Key já foi configurada no arquivo de teste!
+
+Execute:
+    TESTAR_ODDS_API.bat
+
+Isso vai testar a conexão e mostrar as odds disponíveis.
+
+======================================
+OPÇÃO 2: CONFIGURAR .ENV (RECOMENDADO)
+======================================
+
+Para usar em todo o projeto, crie o arquivo .env:
+
+1. Crie um arquivo chamado ".env" (sem extensão)
+2. Cole este conteúdo:
+
+----- COPIE DAQUI -----
+FOOTBALL_DATA_API_KEY=your_api_key_here
+ODDS_API_KEY=ae43b69e9ef7398ca4325da3891bc54b
+----- ATÉ AQUI -----
+
+3. Salve o arquivo na raiz do projeto
+
+======================================
+COMO CRIAR O ARQUIVO .ENV NO WINDOWS
+======================================
+
+MÉTODO 1 - Notepad:
+1. Abra o Notepad
+2. Cole o conteúdo acima
+3. Salvar Como → Nome: .env
+4. Tipo: Todos os arquivos (*.*)
+5. Salvar
+
+MÉTODO 2 - PowerShell:
+1. Abra PowerShell nesta pasta
+2. Execute:
+   @"
+   FOOTBALL_DATA_API_KEY=your_api_key_here
+   ODDS_API_KEY=ae43b69e9ef7398ca4325da3891bc54b
+   "@ | Out-File -FilePath .env -Encoding UTF8
+
+======================================
+PRÓXIMOS PASSOS
+======================================
+
+1. ✅ API Key configurada!
+
+2. 🧪 Testar agora:
+   TESTAR_ODDS_API.bat
+
+3. 📊 Coletar odds:
+   COLETAR_ODDS_DIARIAS.bat
+
+4. 📖 Ver exemplos:
+   EXEMPLO_INTEGRACAO_ODDS.bat
+
+5. 📚 Ler documentação:
+   COMO_USAR_ODDS_DIARIAS.md
+
+======================================
+INFORMAÇÕES DA SUA CONTA
+======================================
+
+Plano: Gratuito
+Requisições disponíveis: 500/mês (~16/dia)
+Ligas: Todas (40+ ligas de futebol)
+Mercados: h2h, totals, btts
+
+Dica: Use cache para economizar requisições!
+
+======================================
+✅ TUDO PRONTO!
+======================================
+
+Agora você pode buscar odds automaticamente!
+
+Execute: TESTAR_ODDS_API.bat
+

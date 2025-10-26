@@ -12,9 +12,13 @@ load_dotenv()
 try:
     import streamlit as st
     FOOTBALL_DATA_API_KEY = st.secrets.get('FOOTBALL_DATA_API_KEY', os.getenv('FOOTBALL_DATA_API_KEY', ''))
+    ODDS_API_KEY = st.secrets.get('ODDS_API_KEY', os.getenv('ODDS_API_KEY', ''))
 except:
     FOOTBALL_DATA_API_KEY = os.getenv('FOOTBALL_DATA_API_KEY', '')
+    ODDS_API_KEY = os.getenv('ODDS_API_KEY', '')
+
 BASE_URL = 'https://api.football-data.org/v4'
+ODDS_API_URL = 'https://api.the-odds-api.com/v4'
 
 # Ligas disponíveis
 LEAGUES = {

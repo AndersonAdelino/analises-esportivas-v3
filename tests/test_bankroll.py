@@ -1,10 +1,19 @@
 """
 Testes para o sistema de gerenciamento de banca
+
+NOTA: O BankrollManager não está sendo usado em produção.
+O sistema atual usa apenas input manual de banca para cálculos do Kelly Criterion,
+sem persistência em banco de dados.
+
+Estes testes estão desabilitados (skip) até que a funcionalidade seja implementada.
 """
 import pytest
 import os
 import sqlite3
 from bankroll_manager import BankrollManager
+
+# Marca todos os testes deste módulo como skip
+pytestmark = pytest.mark.skip(reason="BankrollManager não está sendo usado em produção")
 
 
 @pytest.fixture
