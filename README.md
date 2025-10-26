@@ -35,6 +35,12 @@ Projeto de análise de dados esportivos utilizando dados históricos de **múlti
 - ✅ **Cálculo de probabilidades (1X2, Over/Under, BTTS, Placares)**
 - ✅ **Análise de forças de ataque e defesa dos times**
 - ✅ **Comparação completa entre os 3 modelos**
+- ✅ **🔍 Comparação Detalhada com Visualizações (NOVO!)**
+  - Gráficos comparativos de probabilidades
+  - Heatmaps de placares prováveis (6x6)
+  - Gráfico radar multidimensional
+  - Métricas de divergência e consenso
+  - Recomendações automáticas baseadas em confiança
 
 ### Value Betting & Análise Avançada
 - ✅ **Ensemble de modelos com pesos otimizados**
@@ -45,6 +51,11 @@ Projeto de análise de dados esportivos utilizando dados históricos de **múlti
 - ✅ **🏠 Comparação de desempenho Casa vs Fora**
 - ✅ **⚽ Tendências de gols e forma recente**
 - ✅ **🎯 Estatísticas para apostas (Over/Under, BTTS)**
+- ✅ **🔍 Comparação visual detalhada entre modelos (NOVO!)**
+  - Visualize como cada modelo chegou às conclusões
+  - Heatmaps de placares mais prováveis
+  - Análise de convergência e consenso
+  - Métricas de confiança nas predições
 
 ### 💰 Gerenciamento de Banca
 - ✅ **Configuração e rastreamento de banca real**
@@ -160,6 +171,7 @@ python comparar_modelos_completo.py       # Compara DC vs OD vs Heurísticas
 - [Guia Dixon-Coles](docs/DIXON_COLES_GUIA.md) - Modelo estatístico avançado
 - [Guia Offensive-Defensive](docs/OFFENSIVE_DEFENSIVE_GUIA.md) - Modelo estatístico simplificado
 - [Guia Heurísticas](docs/HEURISTICAS_GUIA.md) - Sistema de análise por regras
+- [Guia Comparação de Modelos](docs/GUIA_COMPARACAO_MODELOS.md) - Análise visual detalhada (NOVO!)
 - [Exemplos de Uso](docs/EXEMPLOS_USO.md) - Casos práticos
 
 ### Usar o cliente da API diretamente

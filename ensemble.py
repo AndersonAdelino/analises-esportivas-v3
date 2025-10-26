@@ -120,7 +120,9 @@ class EnsembleModel:
                     'prob_empate': pred_dc['prob_draw'],
                     'prob_fora': pred_dc['prob_away_win'],
                     'prob_over_2_5': pred_dc['prob_over_2_5'],
-                    'prob_btts': pred_dc['prob_btts_yes']
+                    'prob_btts': pred_dc['prob_btts_yes'],
+                    'top_scores': pred_dc.get('top_scores', []),
+                    'score_matrix': pred_dc.get('prob_matrix', None)
                 }
             except Exception as e:
                 print(f"Erro em Dixon-Coles: {e}")
@@ -135,7 +137,9 @@ class EnsembleModel:
                     'prob_empate': pred_od['prob_draw'],
                     'prob_fora': pred_od['prob_away_win'],
                     'prob_over_2_5': pred_od['prob_over_2_5'],
-                    'prob_btts': pred_od['prob_btts_yes']
+                    'prob_btts': pred_od['prob_btts_yes'],
+                    'top_scores': pred_od.get('top_scores', []),
+                    'score_matrix': pred_od.get('prob_matrix', None)
                 }
             except Exception as e:
                 print(f"Erro em Offensive-Defensive: {e}")
@@ -184,7 +188,9 @@ class EnsembleModel:
                     'prob_empate': prob_empate,
                     'prob_fora': prob_fora,
                     'prob_over_2_5': prob_over,
-                    'prob_btts': prob_btts
+                    'prob_btts': prob_btts,
+                    'top_scores': [],  # Heurísticas não gera placares específicos
+                    'score_matrix': None  # Heurísticas não gera matriz de placares
                 }
             except Exception as e:
                 print(f"Erro em Heuristicas: {e}")
@@ -192,6 +198,11 @@ class EnsembleModel:
         
         # Combina probabilidades com pesos
         ensemble_probs = self._combine_predictions(predictions)
+        
+        # Combina score matrices (se disponíveis)
+        ensemble_matrix, ensemble_top_scores = self._combine_score_matrices(predictions)
+        ensemble_probs['score_matrix'] = ensemble_matrix
+        ensemble_probs['top_scores'] = ensemble_top_scores
         
         return {
             'home_team': home_team,
@@ -227,7 +238,16 @@ class EnsembleModel:
                 weight = self.weights[model_name]
                 for key in valid_probs.keys():
                     if key in pred and pred[key] is not None:
-                        valid_probs[key].append(pred[key])
+                        # VALIDAÇÃO: Garante que probabilidades estão no intervalo [0, 1]
+                        prob_value = pred[key]
+                        if prob_value < 0:
+                            print(f"AVISO: {model_name} retornou {key}={prob_value:.4f} (negativo). Corrigindo para 0.")
+                            prob_value = 0.0
+                        elif prob_value > 1:
+                            print(f"AVISO: {model_name} retornou {key}={prob_value:.4f} (>1). Corrigindo para 1.")
+                            prob_value = 1.0
+                        
+                        valid_probs[key].append(prob_value)
                         valid_weights[key].append(weight)
         
         # Calcula média ponderada
@@ -240,17 +260,72 @@ class EnsembleModel:
                 
                 # Média ponderada
                 combined[key] = sum(p * w for p, w in zip(valid_probs[key], normalized_weights))
+                
+                # VALIDAÇÃO FINAL: Garante que o resultado está no intervalo [0, 1]
+                combined[key] = max(0.0, min(1.0, combined[key]))
             else:
                 combined[key] = None
         
         # Normaliza probabilidades 1X2 para somarem 1
         if all(combined[k] is not None for k in ['prob_casa', 'prob_empate', 'prob_fora']):
             total = combined['prob_casa'] + combined['prob_empate'] + combined['prob_fora']
-            combined['prob_casa'] /= total
-            combined['prob_empate'] /= total
-            combined['prob_fora'] /= total
+            if total > 0:  # Evita divisão por zero
+                combined['prob_casa'] /= total
+                combined['prob_empate'] /= total
+                combined['prob_fora'] /= total
+            else:
+                # Fallback: distribuição uniforme
+                print("AVISO: Soma de probabilidades 1X2 é zero. Usando distribuição uniforme.")
+                combined['prob_casa'] = 1.0 / 3.0
+                combined['prob_empate'] = 1.0 / 3.0
+                combined['prob_fora'] = 1.0 / 3.0
         
         return combined
+    
+    def _combine_score_matrices(self, predictions):
+        """
+        Combina matrizes de placares dos modelos usando pesos
+        
+        Args:
+            predictions: Dict com predições de cada modelo
+            
+        Returns:
+            Tuple (ensemble_matrix, ensemble_top_scores)
+        """
+        import numpy as np
+        
+        # Coleta matrizes válidas
+        matrices = []
+        weights = []
+        
+        for model_name in ['dixon_coles', 'offensive_defensive']:
+            if model_name in predictions and predictions[model_name] is not None:
+                score_matrix = predictions[model_name].get('score_matrix')
+                if score_matrix is not None:
+                    matrices.append(score_matrix)
+                    weights.append(self.weights[model_name])
+        
+        if not matrices:
+            return None, []
+        
+        # Normaliza pesos
+        total_weight = sum(weights)
+        normalized_weights = [w / total_weight for w in weights]
+        
+        # Combina matrizes usando média ponderada
+        ensemble_matrix = np.zeros_like(matrices[0])
+        for matrix, weight in zip(matrices, normalized_weights):
+            ensemble_matrix += matrix * weight
+        
+        # Gera top scores da matriz ensemble
+        max_goals = ensemble_matrix.shape[0] - 1
+        top_scores = []
+        for i in range(ensemble_matrix.shape[0]):
+            for j in range(ensemble_matrix.shape[1]):
+                top_scores.append(((i, j), ensemble_matrix[i, j]))
+        top_scores.sort(key=lambda x: x[1], reverse=True)
+        
+        return ensemble_matrix, top_scores[:10]
 
 
 if __name__ == "__main__":

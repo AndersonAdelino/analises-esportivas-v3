@@ -25,6 +25,9 @@ Bem-vindo à documentação completa do sistema de análise de apostas!
 ### Modelos Baseados em Regras
 - 🧠 [Heurísticas](HEURISTICAS_GUIA.md) - Sistema de análise por padrões
 
+### Comparação e Análise
+- 🔍 [Comparação de Modelos](GUIA_COMPARACAO_MODELOS.md) - Visualizações e análise detalhada (NOVO!)
+
 ## 💻 Interface e Uso
 
 - 🌐 [Como Usar Streamlit](COMO_USAR_STREAMLIT.md) - Interface web

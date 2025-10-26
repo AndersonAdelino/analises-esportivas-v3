@@ -448,6 +448,422 @@ def create_results_pie(stats):
     return fig
 
 
+# ============================================================================
+# MODEL COMPARISON VISUALIZATION FUNCTIONS
+# ============================================================================
+
+def create_probability_comparison_chart(predictions, market='1x2'):
+    """
+    Cria gráfico de barras comparando probabilidades dos 3 modelos
+    
+    Args:
+        predictions: Dict com predições de todos os modelos
+        market: '1x2', 'over_under' ou 'btts'
+    """
+    model_names = ['Dixon-Coles', 'Off-Defensive', 'Heurísticas', 'Ensemble']
+    model_keys = ['dixon_coles', 'offensive_defensive', 'heuristicas', 'ensemble']
+    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']
+    
+    fig = go.Figure()
+    
+    if market == '1x2':
+        categories = ['Vitória Casa', 'Empate', 'Vitória Fora']
+        prob_keys = ['prob_casa', 'prob_empate', 'prob_fora']
+        
+        for i, (model_name, model_key) in enumerate(zip(model_names, model_keys)):
+            if model_key == 'ensemble':
+                model_pred = predictions.get('ensemble', {})
+            else:
+                model_pred = predictions.get('individual', {}).get(model_key)
+            
+            if model_pred:
+                values = [model_pred.get(key, 0) * 100 for key in prob_keys]
+                fig.add_trace(go.Bar(
+                    name=model_name,
+                    x=categories,
+                    y=values,
+                    marker_color=colors[i],
+                    text=[f'{v:.1f}%' for v in values],
+                    textposition='outside'
+                ))
+        
+        title = 'Comparação de Probabilidades - Resultado (1X2)'
+        
+    elif market == 'over_under':
+        categories = ['Over 2.5', 'Under 2.5']
+        
+        for i, (model_name, model_key) in enumerate(zip(model_names, model_keys)):
+            if model_key == 'ensemble':
+                model_pred = predictions.get('ensemble', {})
+            else:
+                model_pred = predictions.get('individual', {}).get(model_key)
+            
+            if model_pred:
+                prob_over = model_pred.get('prob_over_2_5', 0.5) * 100
+                prob_under = (1 - model_pred.get('prob_over_2_5', 0.5)) * 100
+                values = [prob_over, prob_under]
+                fig.add_trace(go.Bar(
+                    name=model_name,
+                    x=categories,
+                    y=values,
+                    marker_color=colors[i],
+                    text=[f'{v:.1f}%' for v in values],
+                    textposition='outside'
+                ))
+        
+        title = 'Comparação de Probabilidades - Over/Under 2.5 Gols'
+        
+    else:  # btts
+        categories = ['BTTS Sim', 'BTTS Não']
+        
+        for i, (model_name, model_key) in enumerate(zip(model_names, model_keys)):
+            if model_key == 'ensemble':
+                model_pred = predictions.get('ensemble', {})
+            else:
+                model_pred = predictions.get('individual', {}).get(model_key)
+            
+            if model_pred:
+                prob_yes = model_pred.get('prob_btts', 0.5) * 100
+                prob_no = (1 - model_pred.get('prob_btts', 0.5)) * 100
+                values = [prob_yes, prob_no]
+                fig.add_trace(go.Bar(
+                    name=model_name,
+                    x=categories,
+                    y=values,
+                    marker_color=colors[i],
+                    text=[f'{v:.1f}%' for v in values],
+                    textposition='outside'
+                ))
+        
+        title = 'Comparação de Probabilidades - BTTS (Ambos Marcam)'
+    
+    fig.update_layout(
+        title=title,
+        xaxis_title='Resultado',
+        yaxis_title='Probabilidade (%)',
+        barmode='group',
+        height=450,
+        showlegend=True,
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1
+        )
+    )
+    
+    return fig
+
+
+def create_score_heatmap(score_matrix, model_name, max_goals=5):
+    """
+    Cria heatmap de placares prováveis
+    
+    Args:
+        score_matrix: Matriz numpy (11x11) com probabilidades
+        model_name: Nome do modelo
+        max_goals: Máximo de gols a exibir (default 5)
+    """
+    if score_matrix is None:
+        return None
+    
+    # Reduzir matriz para (max_goals+1) x (max_goals+1)
+    matrix_display = score_matrix[:max_goals+1, :max_goals+1]
+    
+    # Converter para porcentagem
+    matrix_pct = matrix_display * 100
+    
+    # Criar texto para células
+    text = np.round(matrix_pct, 1).astype(str)
+    for i in range(text.shape[0]):
+        for j in range(text.shape[1]):
+            text[i, j] = f'{text[i, j]}%'
+    
+    fig = go.Figure(data=go.Heatmap(
+        z=matrix_pct,
+        x=[str(i) for i in range(max_goals+1)],
+        y=[str(i) for i in range(max_goals+1)],
+        colorscale='RdYlGn',
+        text=text,
+        texttemplate='%{text}',
+        textfont={"size": 10},
+        colorbar=dict(title="Prob. (%)", titleside="right"),
+        hovertemplate='Casa: %{y} gols<br>Fora: %{x} gols<br>Probabilidade: %{z:.1f}%<extra></extra>'
+    ))
+    
+    fig.update_layout(
+        title=f'Placares Prováveis - {model_name}',
+        xaxis_title='Gols Fora',
+        yaxis_title='Gols Casa',
+        height=400,
+        xaxis=dict(side='bottom'),
+        yaxis=dict(autorange='reversed')  # Casa em ordem crescente de cima para baixo
+    )
+    
+    return fig
+
+
+def create_top_scores_table(predictions):
+    """
+    Cria tabela comparativa dos top 10 placares mais prováveis
+    
+    Args:
+        predictions: Dict com predições de todos os modelos
+    """
+    # Coletar top scores de cada modelo
+    models_data = {}
+    
+    # Dixon-Coles
+    dc_pred = predictions.get('individual', {}).get('dixon_coles')
+    if dc_pred and dc_pred.get('top_scores'):
+        models_data['Dixon-Coles'] = {
+            score: prob * 100 
+            for (score, prob) in dc_pred['top_scores'][:10]
+        }
+    
+    # Offensive-Defensive
+    od_pred = predictions.get('individual', {}).get('offensive_defensive')
+    if od_pred and od_pred.get('top_scores'):
+        models_data['Off-Defensive'] = {
+            score: prob * 100 
+            for (score, prob) in od_pred['top_scores'][:10]
+        }
+    
+    # Ensemble
+    ens_pred = predictions.get('ensemble', {})
+    if ens_pred and ens_pred.get('top_scores'):
+        models_data['Ensemble'] = {
+            score: prob * 100 
+            for (score, prob) in ens_pred['top_scores'][:10]
+        }
+    
+    if not models_data:
+        return None
+    
+    # Obter todos os placares únicos do top 10 de cada modelo
+    all_scores = set()
+    for model_scores in models_data.values():
+        all_scores.update(model_scores.keys())
+    
+    # Ordenar por soma de probabilidades
+    score_sums = {
+        score: sum(models_data[model].get(score, 0) for model in models_data)
+        for score in all_scores
+    }
+    top_scores = sorted(score_sums.items(), key=lambda x: x[1], reverse=True)[:10]
+    
+    # Criar DataFrame
+    table_data = []
+    for score, _ in top_scores:
+        row = {'Placar': f'{score[0]}-{score[1]}'}
+        for model_name in ['Dixon-Coles', 'Off-Defensive', 'Ensemble']:
+            if model_name in models_data:
+                prob = models_data[model_name].get(score, 0)
+                row[model_name] = f'{prob:.1f}%' if prob > 0 else '-'
+            else:
+                row[model_name] = '-'
+        table_data.append(row)
+    
+    return pd.DataFrame(table_data)
+
+
+def create_radar_chart(predictions):
+    """
+    Cria gráfico radar comparando 6 dimensões dos modelos
+    
+    Args:
+        predictions: Dict com predições de todos os modelos
+    """
+    categories = [
+        'Vitória Casa',
+        'Empate',
+        'Vitória Fora',
+        'Over 2.5',
+        'Under 2.5',
+        'BTTS'
+    ]
+    
+    fig = go.Figure()
+    
+    model_names = ['Dixon-Coles', 'Off-Defensive', 'Heurísticas', 'Ensemble']
+    model_keys = ['dixon_coles', 'offensive_defensive', 'heuristicas', 'ensemble']
+    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']
+    
+    for model_name, model_key, color in zip(model_names, model_keys, colors):
+        if model_key == 'ensemble':
+            model_pred = predictions.get('ensemble', {})
+        else:
+            model_pred = predictions.get('individual', {}).get(model_key)
+        
+        if model_pred:
+            values = [
+                model_pred.get('prob_casa', 0) * 100,
+                model_pred.get('prob_empate', 0) * 100,
+                model_pred.get('prob_fora', 0) * 100,
+                model_pred.get('prob_over_2_5', 0) * 100,
+                (1 - model_pred.get('prob_over_2_5', 0.5)) * 100,
+                model_pred.get('prob_btts', 0) * 100
+            ]
+            
+            fig.add_trace(go.Scatterpolar(
+                r=values,
+                theta=categories,
+                fill='toself',
+                name=model_name,
+                line=dict(color=color, width=2),
+                opacity=0.6
+            ))
+    
+    fig.update_layout(
+        polar=dict(
+            radialaxis=dict(
+                visible=True,
+                range=[0, 100]
+            )
+        ),
+        showlegend=True,
+        title='Comparação Multidimensional dos Modelos',
+        height=500
+    )
+    
+    return fig
+
+
+def calculate_model_divergence(predictions):
+    """
+    Calcula divergência KL entre modelos
+    
+    Args:
+        predictions: Dict com predições de todos os modelos
+        
+    Returns:
+        Dict com métricas de divergência
+    """
+    from scipy.special import kl_div
+    
+    # Obter probabilidades 1X2 de cada modelo
+    models_probs = {}
+    
+    for model_key in ['dixon_coles', 'offensive_defensive', 'heuristicas']:
+        model_pred = predictions.get('individual', {}).get(model_key)
+        if model_pred:
+            models_probs[model_key] = np.array([
+                model_pred.get('prob_casa', 0.33),
+                model_pred.get('prob_empate', 0.33),
+                model_pred.get('prob_fora', 0.33)
+            ])
+    
+    if len(models_probs) < 2:
+        return {
+            'kl_divergence_avg': 0,
+            'max_divergence': 0,
+            'interpretation': 'Dados insuficientes'
+        }
+    
+    # Calcular KL divergence entre pares
+    divergences = []
+    model_list = list(models_probs.keys())
+    
+    for i in range(len(model_list)):
+        for j in range(i + 1, len(model_list)):
+            p = models_probs[model_list[i]]
+            q = models_probs[model_list[j]]
+            
+            # KL divergence (evita log(0))
+            p = np.clip(p, 1e-10, 1)
+            q = np.clip(q, 1e-10, 1)
+            
+            kl = np.sum(kl_div(p, q))
+            divergences.append(kl)
+    
+    avg_kl = np.mean(divergences) if divergences else 0
+    max_kl = np.max(divergences) if divergences else 0
+    
+    # Interpretação
+    if avg_kl < 0.1:
+        interpretation = 'Baixa (Modelos muito concordantes)'
+    elif avg_kl < 0.3:
+        interpretation = 'Moderada (Alguma divergência)'
+    else:
+        interpretation = 'Alta (Modelos discordam significativamente)'
+    
+    return {
+        'kl_divergence_avg': avg_kl,
+        'max_divergence': max_kl,
+        'interpretation': interpretation
+    }
+
+
+def calculate_consensus(predictions):
+    """
+    Calcula nível de consenso entre modelos (%)
+    
+    Args:
+        predictions: Dict com predições de todos os modelos
+        
+    Returns:
+        Dict com métricas de consenso
+    """
+    # Obter probabilidades 1X2 de cada modelo
+    casa_probs = []
+    empate_probs = []
+    fora_probs = []
+    
+    for model_key in ['dixon_coles', 'offensive_defensive', 'heuristicas']:
+        model_pred = predictions.get('individual', {}).get(model_key)
+        if model_pred:
+            casa_probs.append(model_pred.get('prob_casa', 0.33))
+            empate_probs.append(model_pred.get('prob_empate', 0.33))
+            fora_probs.append(model_pred.get('prob_fora', 0.33))
+    
+    if len(casa_probs) < 2:
+        return {
+            'consensus_level': 0,
+            'std_dev_casa': 0,
+            'std_dev_empate': 0,
+            'std_dev_fora': 0,
+            'interpretation': 'Dados insuficientes'
+        }
+    
+    # Calcular desvio padrão
+    std_casa = np.std(casa_probs)
+    std_empate = np.std(empate_probs)
+    std_fora = np.std(fora_probs)
+    
+    # Consenso = 1 - (média dos desvios / média das probabilidades)
+    avg_std = (std_casa + std_empate + std_fora) / 3
+    avg_prob = (np.mean(casa_probs) + np.mean(empate_probs) + np.mean(fora_probs)) / 3
+    
+    if avg_prob > 0:
+        consensus = (1 - (avg_std / avg_prob)) * 100
+        consensus = max(0, min(100, consensus))  # Limitar entre 0 e 100
+    else:
+        consensus = 0
+    
+    # Interpretação
+    if consensus >= 85:
+        interpretation = 'Muito Alto (Forte concordância)'
+    elif consensus >= 70:
+        interpretation = 'Alto (Boa concordância)'
+    elif consensus >= 50:
+        interpretation = 'Moderado (Concordância parcial)'
+    else:
+        interpretation = 'Baixo (Modelos divergem)'
+    
+    return {
+        'consensus_level': consensus,
+        'std_dev_casa': std_casa,
+        'std_dev_empate': std_empate,
+        'std_dev_fora': std_fora,
+        'interpretation': interpretation
+    }
+
+
+# ============================================================================
+# TEAM ANALYSIS FUNCTIONS
+# ============================================================================
+
 def display_team_analysis():
     """Exibe análise completa de um time"""
     st.header("📊 Análise Detalhada de Time")
@@ -1034,6 +1450,250 @@ def analyze_and_display(ensemble, match, odds, bankroll, kelly_fraction):
                 with [col1, col2, col3][idx]:
                     st.markdown(f"**❌ {model_name.upper().replace('_', '-')}**")
                     st.error("Modelo falhou")
+    
+    # ============================================================================
+    # NOVA SEÇÃO: COMPARAÇÃO DETALHADA DOS MODELOS
+    # ============================================================================
+    
+    st.markdown("---")
+    st.header("🔍 Comparação Detalhada dos Modelos")
+    st.markdown("""
+    Explore como cada modelo chegou às suas conclusões, veja placares mais prováveis 
+    e analise o nível de consenso entre os modelos.
+    """)
+    
+    # Tabs para diferentes visualizações
+    comp_tab1, comp_tab2, comp_tab3 = st.tabs([
+        "📊 Probabilidades", 
+        "🎯 Placares", 
+        "📈 Convergência"
+    ])
+    
+    with comp_tab1:
+        st.subheader("Comparação de Probabilidades entre Modelos")
+        st.markdown("Compare as probabilidades previstas por cada modelo para diferentes mercados.")
+        
+        # Gráficos de barras comparativas
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            fig_1x2 = create_probability_comparison_chart(prediction, market='1x2')
+            st.plotly_chart(fig_1x2, use_container_width=True)
+        
+        with col2:
+            fig_ou = create_probability_comparison_chart(prediction, market='over_under')
+            st.plotly_chart(fig_ou, use_container_width=True)
+        
+        fig_btts = create_probability_comparison_chart(prediction, market='btts')
+        st.plotly_chart(fig_btts, use_container_width=True)
+        
+        st.markdown("---")
+        
+        # Gráfico Radar
+        st.subheader("Visualização Multidimensional")
+        st.markdown("Compare todas as dimensões dos modelos em um único gráfico.")
+        fig_radar = create_radar_chart(prediction)
+        st.plotly_chart(fig_radar, use_container_width=True)
+        
+        st.info("""
+        💡 **Como interpretar:** 
+        - Quanto mais sobrepostas as formas, maior o consenso
+        - Áreas onde os modelos divergem indicam maior incerteza
+        - O **Ensemble** (vermelho) combina todos os modelos
+        """)
+    
+    with comp_tab2:
+        st.subheader("Placares Mais Prováveis por Modelo")
+        st.markdown("Visualize a distribuição de probabilidades para diferentes placares.")
+        
+        # Heatmaps dos modelos
+        st.markdown("### 🗺️ Mapas de Calor (Heatmaps)")
+        
+        col1, col2, col3 = st.columns(3)
+        
+        # Dixon-Coles
+        dc_pred = prediction.get('individual', {}).get('dixon_coles')
+        if dc_pred and dc_pred.get('score_matrix') is not None:
+            with col1:
+                fig_dc = create_score_heatmap(dc_pred['score_matrix'], 'Dixon-Coles')
+                if fig_dc:
+                    st.plotly_chart(fig_dc, use_container_width=True)
+        else:
+            with col1:
+                st.warning("Dixon-Coles: Matriz de placares não disponível")
+        
+        # Offensive-Defensive
+        od_pred = prediction.get('individual', {}).get('offensive_defensive')
+        if od_pred and od_pred.get('score_matrix') is not None:
+            with col2:
+                fig_od = create_score_heatmap(od_pred['score_matrix'], 'Off-Defensive')
+                if fig_od:
+                    st.plotly_chart(fig_od, use_container_width=True)
+        else:
+            with col2:
+                st.warning("Off-Defensive: Matriz de placares não disponível")
+        
+        # Ensemble
+        ens_pred = prediction.get('ensemble', {})
+        if ens_pred.get('score_matrix') is not None:
+            with col3:
+                fig_ens = create_score_heatmap(ens_pred['score_matrix'], 'Ensemble')
+                if fig_ens:
+                    st.plotly_chart(fig_ens, use_container_width=True)
+        else:
+            with col3:
+                st.warning("Ensemble: Matriz de placares não disponível")
+        
+        st.info("""
+        💡 **Como interpretar os heatmaps:** 
+        - Cores mais **verdes** = maior probabilidade
+        - Cores mais **vermelhas** = menor probabilidade
+        - **Eixo Y** (vertical) = Gols da Casa
+        - **Eixo X** (horizontal) = Gols do Visitante
+        """)
+        
+        st.markdown("---")
+        
+        # Top 10 Placares
+        st.markdown("### 🏆 Top 10 Placares Mais Prováveis")
+        
+        scores_table = create_top_scores_table(prediction)
+        if scores_table is not None:
+            st.dataframe(
+                scores_table, 
+                use_container_width=True, 
+                hide_index=True
+            )
+            
+            st.success("""
+            ✅ **Dica para apostas em placar exato:**  
+            Placares com alta probabilidade no **Ensemble** e consenso entre modelos 
+            geralmente oferecem melhor valor.
+            """)
+        else:
+            st.warning("Tabela de placares não disponível")
+    
+    with comp_tab3:
+        st.subheader("Análise de Convergência e Consenso")
+        st.markdown("""
+        Avalie o grau de concordância entre os modelos. Maior consenso geralmente 
+        indica predições mais confiáveis.
+        """)
+        
+        # Calcular métricas
+        divergence_metrics = calculate_model_divergence(prediction)
+        consensus_metrics = calculate_consensus(prediction)
+        
+        # Exibir métricas em cards
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.metric(
+                "📈 Divergência KL Média", 
+                f"{divergence_metrics['kl_divergence_avg']:.3f}",
+                help="Kullback-Leibler divergence. Quanto menor, mais concordantes os modelos."
+            )
+            st.caption(f"**Interpretação:** {divergence_metrics['interpretation']}")
+        
+        with col2:
+            st.metric(
+                "🎯 Nível de Consenso", 
+                f"{consensus_metrics['consensus_level']:.1f}%",
+                help="Percentual de concordância entre modelos. Maior = mais confiança."
+            )
+            st.caption(f"**Interpretação:** {consensus_metrics['interpretation']}")
+        
+        with col3:
+            # Determinar recomendação
+            if consensus_metrics['consensus_level'] >= 85:
+                confidence_icon = "🟢"
+                confidence_text = "Alta"
+                confidence_color = "green"
+            elif consensus_metrics['consensus_level'] >= 70:
+                confidence_icon = "🟡"
+                confidence_text = "Boa"
+                confidence_color = "orange"
+            else:
+                confidence_icon = "🔴"
+                confidence_text = "Baixa"
+                confidence_color = "red"
+            
+            st.metric(
+                f"{confidence_icon} Confiança na Predição", 
+                confidence_text,
+                help="Baseado no nível de consenso entre os modelos."
+            )
+        
+        st.markdown("---")
+        
+        # Detalhes das métricas
+        with st.expander("📊 Detalhes das Métricas de Convergência"):
+            st.markdown("### Desvio Padrão por Mercado")
+            
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric(
+                    "Vitória Casa", 
+                    f"{consensus_metrics['std_dev_casa']:.3f}",
+                    help="Desvio padrão das probabilidades de vitória da casa"
+                )
+            with col2:
+                st.metric(
+                    "Empate", 
+                    f"{consensus_metrics['std_dev_empate']:.3f}",
+                    help="Desvio padrão das probabilidades de empate"
+                )
+            with col3:
+                st.metric(
+                    "Vitória Fora", 
+                    f"{consensus_metrics['std_dev_fora']:.3f}",
+                    help="Desvio padrão das probabilidades de vitória do visitante"
+                )
+            
+            st.markdown("---")
+            
+            st.markdown("### 📖 Sobre as Métricas")
+            st.markdown("""
+            **Divergência KL (Kullback-Leibler):**
+            - Mede a diferença entre as distribuições de probabilidade dos modelos
+            - **0** = Modelos idênticos
+            - **< 0.1** = Baixa divergência (modelos muito concordantes)
+            - **0.1-0.3** = Divergência moderada
+            - **> 0.3** = Alta divergência (modelos discordam significativamente)
+            
+            **Nível de Consenso:**
+            - Baseado no desvio padrão das probabilidades
+            - **> 85%** = Muito Alto (forte concordância)
+            - **70-85%** = Alto (boa concordância)
+            - **50-70%** = Moderado (concordância parcial)
+            - **< 50%** = Baixo (modelos divergem)
+            
+            **Recomendação:**
+            - **Alto consenso** → Maior confiança na predição
+            - **Baixo consenso** → Cautela recomendada, reduzir stake
+            """)
+        
+        st.markdown("---")
+        
+        # Recomendação final
+        if consensus_metrics['consensus_level'] >= 80:
+            st.success("""
+            ✅ **ALTO CONSENSO:** Os modelos concordam fortemente.  
+            As predições têm maior probabilidade de serem precisas.  
+            Você pode apostar com mais confiança (respeitando a gestão de banca).
+            """)
+        elif consensus_metrics['consensus_level'] >= 60:
+            st.info("""
+            ℹ️ **CONSENSO MODERADO:** Os modelos concordam parcialmente.  
+            As predições são razoáveis, mas há alguma incerteza.  
+            Considere reduzir o stake em 25-50%.
+            """)
+        else:
+            st.warning("""
+            ⚠️ **BAIXO CONSENSO:** Os modelos divergem significativamente.  
+            Há alta incerteza nesta predição.  
+            Recomenda-se não apostar ou usar stakes mínimos.
+            """)
 
 
 def main():
