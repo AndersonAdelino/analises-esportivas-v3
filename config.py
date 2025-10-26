@@ -20,6 +20,8 @@ except:
 BASE_URL = 'https://api.football-data.org/v4'
 ODDS_API_URL = 'https://api.the-odds-api.com/v4'
 
+# Exporta ODDS_API_KEY para uso em odds_api_client.py
+
 # Ligas disponíveis
 LEAGUES = {
     'Premier League': {
