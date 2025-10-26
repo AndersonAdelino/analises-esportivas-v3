@@ -18,6 +18,8 @@ from betting_tools import analyze_bet, print_bet_analysis
 from bingo_analyzer import BingoAnalyzer
 import config
 import numpy as np
+import os
+from glob import glob
 
 # Fuso horário de Brasília (UTC-3)
 BRASILIA_TZ = timezone(timedelta(hours=-3))
@@ -42,6 +44,65 @@ def convert_to_brasilia_time(utc_date_str):
         return brasilia_date.strftime("%d/%m/%Y %H:%M")
     except:
         return utc_date_str
+
+
+def check_data_freshness(league_code, max_age_hours=24):
+    """
+    Verifica se os dados estão atualizados
+    
+    Args:
+        league_code: Código da liga (ex: 'PL', 'BSA')
+        max_age_hours: Idade máxima dos dados em horas
+        
+    Returns:
+        tuple: (needs_update, last_update_time, file_path)
+    """
+    # Mapeia code para nome do arquivo
+    league_name_map = {info['code']: name.lower().replace(' ', '_').replace('ã', 'a').replace('é', 'e')
+                      for name, info in config.LEAGUES.items()}
+    league_prefix = league_name_map.get(league_code, 'league')
+    
+    csv_files = glob(f'data/{league_prefix}_matches_*.csv')
+    
+    if not csv_files:
+        return True, None, None  # Sem arquivos, precisa atualizar
+    
+    latest_file = max(csv_files, key=os.path.getctime)
+    file_time = datetime.fromtimestamp(os.path.getctime(latest_file))
+    age = datetime.now() - file_time
+    
+    needs_update = age.total_seconds() > (max_age_hours * 3600)
+    
+    return needs_update, file_time, latest_file
+
+
+def update_league_data(league_code, league_name):
+    """
+    Atualiza dados de uma liga específica
+    
+    Args:
+        league_code: Código da liga
+        league_name: Nome da liga para exibição
+        
+    Returns:
+        tuple: (success, message, matches_count)
+    """
+    try:
+        from get_team_matches import get_all_teams_matches
+        
+        # Coleta dados da liga selecionada
+        df, data = get_all_teams_matches(
+            limit_per_team=20, 
+            league_code=league_code
+        )
+        
+        if df is not None and len(df) > 0:
+            return True, f"✅ Dados atualizados! {len(df)} partidas coletadas.", len(df)
+        else:
+            return False, "❌ Erro: Nenhuma partida foi coletada.", 0
+            
+    except Exception as e:
+        return False, f"❌ Erro ao atualizar: {str(e)}", 0
 
 
 # Configuração da página
@@ -1723,6 +1784,57 @@ def main():
         # Armazena no session_state para uso em outras funções
         st.session_state['selected_league_code'] = selected_league_code
         st.session_state['selected_league_name'] = selected_league_name
+        
+        st.markdown("---")
+        
+        # ===== SEÇÃO DE ATUALIZAÇÃO DE DADOS =====
+        st.subheader("🔄 Atualização de Dados")
+        
+        # Verifica idade dos dados
+        needs_update, last_update, file_path = check_data_freshness(selected_league_code, max_age_hours=24)
+        
+        if last_update:
+            age = datetime.now() - last_update
+            hours_old = int(age.total_seconds() / 3600)
+            minutes_old = int((age.total_seconds() % 3600) / 60)
+            
+            # Mostra informação da última atualização
+            st.info(f"📅 **Última atualização:**\n\n{last_update.strftime('%d/%m/%Y às %H:%M')}")
+            
+            # Mostra idade dos dados com cores
+            if hours_old < 12:
+                st.success(f"⏰ **Idade:** {hours_old}h {minutes_old}min\n\n✅ Dados recentes!")
+            elif hours_old < 24:
+                st.warning(f"⏰ **Idade:** {hours_old}h {minutes_old}min\n\n⚠️ Dados OK, mas considere atualizar")
+            else:
+                days_old = hours_old // 24
+                hours_remainder = hours_old % 24
+                st.error(f"⏰ **Idade:** {days_old}d {hours_remainder}h\n\n❗ Recomendado atualizar!")
+        else:
+            st.error("❌ **Nenhum dado encontrado!**\n\nClique no botão abaixo para coletar dados.")
+        
+        # Botão de atualização
+        update_button = st.button(
+            "📥 Atualizar Dados Agora",
+            help=f"Busca os dados mais recentes da {selected_league_name} via API (leva 2-3 minutos)",
+            type="primary" if needs_update else "secondary",
+            use_container_width=True
+        )
+        
+        if update_button:
+            with st.spinner(f"🔄 Coletando dados de {selected_league_name}...\n\nIsso levará ~2-3 minutos. Aguarde..."):
+                success, message, count = update_league_data(selected_league_code, selected_league_name)
+                
+                if success:
+                    st.success(message)
+                    st.balloons()
+                    st.info("💡 **Próximo passo:** Recarregue a página (F5) ou clique em 'Limpar Cache' abaixo para usar os novos dados.")
+                    
+                    # Limpa cache automaticamente
+                    st.cache_data.clear()
+                    st.cache_resource.clear()
+                else:
+                    st.error(message)
         
         st.markdown("---")
     
