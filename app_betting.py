@@ -588,7 +588,7 @@ def create_score_heatmap(score_matrix, model_name, max_goals=5):
         text=text,
         texttemplate='%{text}',
         textfont={"size": 10},
-        colorbar=dict(title="Prob. (%)", titleside="right"),
+        colorbar=dict(title=dict(text="Prob. (%)", side="right")),
         hovertemplate='Casa: %{y} gols<br>Fora: %{x} gols<br>Probabilidade: %{z:.1f}%<extra></extra>'
     ))
     
