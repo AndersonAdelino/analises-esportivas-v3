@@ -46,18 +46,23 @@ class DixonColesModel:
             rho: Parâmetro de correlação
             
         Returns:
-            Fator de correção tau
+            Fator de correção tau (sempre > 0 para evitar problemas no log)
         """
+        tau = 1.0
+        
         if home_goals == 0 and away_goals == 0:
-            return 1 - lambda_home * lambda_away * rho
+            tau = 1 - lambda_home * lambda_away * rho
         elif home_goals == 0 and away_goals == 1:
-            return 1 + lambda_home * rho
+            tau = 1 + lambda_home * rho
         elif home_goals == 1 and away_goals == 0:
-            return 1 + lambda_away * rho
+            tau = 1 + lambda_away * rho
         elif home_goals == 1 and away_goals == 1:
-            return 1 - rho
-        else:
-            return 1.0
+            tau = 1 - rho
+        
+        # CORREÇÃO CRÍTICA: Garante que tau seja sempre > 0
+        # Se tau <= 0, isso causaria -inf ou NaN no log
+        # Usamos um valor mínimo muito pequeno mas positivo
+        return max(tau, 1e-10)
     
     def dc_log_likelihood(self, params, home_teams, away_teams, home_goals, away_goals, weights=None):
         """
@@ -143,7 +148,7 @@ class DixonColesModel:
         n_teams = len(self.teams)
         init_params = np.concatenate([
             [0.3],  # home advantage
-            [0.0],  # rho
+            [0.0],  # rho (começar em 0 é mais seguro)
             np.random.normal(0, 0.1, n_teams),  # attack
             np.random.normal(0, 0.1, n_teams)   # defense
         ])
@@ -154,13 +159,18 @@ class DixonColesModel:
         print(f"- Partidas: {len(df)}")
         print(f"- Decaimento temporal: {time_decay} (xi={self.xi})")
         
+        # Definir bounds para evitar valores extremos
+        # home_advantage: [0, 1], rho: [-0.2, 0.2], attack/defense: sem limite
+        bounds = [(0, 1), (-0.2, 0.2)] + [(None, None)] * (2 * n_teams)
+        
         options = {'maxiter': 100, 'disp': False}
         
         result = minimize(
             self.dc_log_likelihood,
             init_params,
             args=(home_teams, away_teams, home_goals, away_goals, weights),
-            method='BFGS',
+            method='L-BFGS-B',  # Mudado para L-BFGS-B que suporta bounds
+            bounds=bounds,
             options=options
         )
         
@@ -416,7 +426,7 @@ def load_match_data(league_code=None):
         league_code = PREMIER_LEAGUE_CODE
     
     # Mapeia code para nome do arquivo
-    league_name_map = {info['code']: name.lower().replace(' ', '_').replace('ã', 'a') 
+    league_name_map = {info['code']: name.lower().replace(' ', '_').replace('ã', 'a').replace('é', 'e')
                       for name, info in LEAGUES.items()}
     league_prefix = league_name_map.get(league_code, 'league')
     

@@ -1326,6 +1326,92 @@ def display_bankroll_input():
     return bankroll, kelly_fraction
 
 
+def get_data_info(home_team, away_team, league_code):
+    """Obtém informações sobre os dados utilizados na análise"""
+    from dixon_coles import load_match_data
+    from config import LEAGUES
+    
+    try:
+        # Carrega dados
+        df = load_match_data(league_code=league_code)
+        
+        # Nome da liga
+        league_name = [name for name, info in LEAGUES.items() if info['code'] == league_code][0]
+        
+        # Arquivo usado
+        league_name_map = {info['code']: name.lower().replace(' ', '_').replace('ã', 'a').replace('é', 'e')
+                          for name, info in LEAGUES.items()}
+        league_prefix = league_name_map.get(league_code, 'league')
+        csv_files = glob(f'data/{league_prefix}_matches_*.csv')
+        
+        if csv_files:
+            latest_file = max(csv_files, key=os.path.getctime)
+            file_name = os.path.basename(latest_file)
+            file_time = datetime.fromtimestamp(os.path.getctime(latest_file))
+        else:
+            file_name = "API (sem arquivo local)"
+            file_time = datetime.now()
+        
+        # Estatísticas gerais
+        total_matches = len(df)
+        total_teams = len(set(df['time_casa'].unique()) | set(df['time_visitante'].unique()))
+        
+        # Data das partidas
+        df['data'] = pd.to_datetime(df['data'])
+        oldest_match = df['data'].min()
+        newest_match = df['data'].max()
+        
+        # Partidas do time da casa
+        home_matches = df[(df['time_casa'] == home_team) | (df['time_visitante'] == home_team)]
+        home_count = len(home_matches)
+        
+        # Partidas do time visitante
+        away_matches = df[(df['time_casa'] == away_team) | (df['time_visitante'] == away_team)]
+        away_count = len(away_matches)
+        
+        # Confrontos diretos
+        direct_matches = df[
+            ((df['time_casa'] == home_team) & (df['time_visitante'] == away_team)) |
+            ((df['time_casa'] == away_team) & (df['time_visitante'] == home_team))
+        ].sort_values('data', ascending=False)
+        
+        direct_count = len(direct_matches)
+        direct_list = []
+        
+        for _, match in direct_matches.head(5).iterrows():
+            date_str = match['data'].strftime('%d/%m/%Y')
+            if match['time_casa'] == home_team:
+                score = f"{match['gols_casa']}-{match['gols_visitante']}"
+                result = "V" if match['gols_casa'] > match['gols_visitante'] else ("E" if match['gols_casa'] == match['gols_visitante'] else "D")
+            else:
+                score = f"{match['gols_visitante']}-{match['gols_casa']}"
+                result = "V" if match['gols_visitante'] > match['gols_casa'] else ("E" if match['gols_visitante'] == match['gols_casa'] else "D")
+            
+            direct_list.append({
+                'date': date_str,
+                'score': score,
+                'result': result,
+                'home_was': match['time_casa'],
+                'away_was': match['time_visitante']
+            })
+        
+        return {
+            'league': league_name,
+            'file_name': file_name,
+            'file_time': file_time,
+            'total_matches': total_matches,
+            'total_teams': total_teams,
+            'oldest_match': oldest_match,
+            'newest_match': newest_match,
+            'home_count': home_count,
+            'away_count': away_count,
+            'direct_count': direct_count,
+            'direct_matches': direct_list
+        }
+    except Exception as e:
+        return None
+
+
 def analyze_and_display(ensemble, match, odds, bankroll, kelly_fraction):
     """Realiza análise e exibe resultados"""
     
@@ -1360,6 +1446,61 @@ def analyze_and_display(ensemble, match, odds, bankroll, kelly_fraction):
     
     # Exibe probabilidades do modelo
     st.success("✅ Análise concluída!")
+    
+    # Mostra informações sobre os dados utilizados
+    league_code = st.session_state.get('selected_league_code', config.PREMIER_LEAGUE_CODE)
+    data_info = get_data_info(home_team, away_team, league_code)
+    
+    if data_info:
+        with st.expander("📊 Dados Utilizados na Análise", expanded=False):
+            st.markdown("### 📁 Informações do Dataset")
+            
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("Total de Partidas", data_info['total_matches'])
+                st.metric("Times na Base", data_info['total_teams'])
+            with col2:
+                st.metric(f"Jogos de {home_team}", data_info['home_count'])
+                st.metric(f"Jogos de {away_team}", data_info['away_count'])
+            with col3:
+                st.metric("Confrontos Diretos", data_info['direct_count'])
+                age = datetime.now() - data_info['file_time']
+                hours_old = int(age.total_seconds() / 3600)
+                st.metric("Idade dos Dados", f"{hours_old}h")
+            
+            st.markdown("---")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                st.markdown(f"**📅 Período dos Dados:**")
+                st.write(f"De: {data_info['oldest_match'].strftime('%d/%m/%Y')}")
+                st.write(f"Até: {data_info['newest_match'].strftime('%d/%m/%Y')}")
+            with col2:
+                st.markdown(f"**📂 Arquivo Usado:**")
+                st.code(data_info['file_name'], language=None)
+                st.write(f"Atualizado em: {data_info['file_time'].strftime('%d/%m/%Y %H:%M')}")
+            
+            # Histórico de confrontos diretos
+            if data_info['direct_matches']:
+                st.markdown("---")
+                st.markdown("### ⚔️ Últimos Confrontos Diretos")
+                st.caption(f"*Resultado do ponto de vista de {home_team}*")
+                
+                for idx, confronto in enumerate(data_info['direct_matches'], 1):
+                    emoji = "🟢" if confronto['result'] == "V" else ("🟡" if confronto['result'] == "E" else "🔴")
+                    resultado_texto = "Vitória" if confronto['result'] == "V" else ("Empate" if confronto['result'] == "E" else "Derrota")
+                    
+                    local = "🏠 Casa" if confronto['home_was'] == home_team else "✈️ Fora"
+                    
+                    st.markdown(
+                        f"{emoji} **{confronto['date']}** - {local} - "
+                        f"**{confronto['score']}** - {resultado_texto}"
+                    )
+            else:
+                st.markdown("---")
+                st.info("ℹ️ Não há confrontos diretos recentes entre estes times no dataset.")
+    
+    st.markdown("---")
     
     # Banner informativo sobre os modelos usados
     st.info("🤖 **Ensemble combinando 3 modelos:** Dixon-Coles (55%) + Offensive-Defensive (30%) + Heurísticas (15%)")

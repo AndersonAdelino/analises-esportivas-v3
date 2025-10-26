@@ -128,7 +128,7 @@ class HeuristicasModel:
             league_code = PREMIER_LEAGUE_CODE
         
         # Mapeia code para nome do arquivo
-        league_name_map = {info['code']: name.lower().replace(' ', '_').replace('ã', 'a') 
+        league_name_map = {info['code']: name.lower().replace(' ', '_').replace('ã', 'a').replace('é', 'e')
                           for name, info in LEAGUES.items()}
         league_prefix = league_name_map.get(league_code, 'league')
         
@@ -160,11 +160,20 @@ class HeuristicasModel:
             # Tenta filtrar pelo nome completo da liga
             df_raw = df_raw[df_raw['competicao'].str.contains(league_full_name.split()[0], na=False, case=False)]
         
-        # Normaliza os dados
-        self.df = self._normalize_data(df_raw)
+        # Verifica se os dados já estão normalizados
+        required_normalized_cols = ['time', 'adversario', 'local', 'gols_marcados', 'gols_sofridos', 'resultado']
+        if all(col in df_raw.columns for col in required_normalized_cols):
+            # Dados já estão normalizados
+            print("Dados já normalizados (formato time/adversario/local)")
+            self.df = df_raw.sort_values('data', ascending=False)
+        else:
+            # Precisa normalizar
+            print("Normalizando dados (formato time_casa/time_visitante)")
+            self.df = self._normalize_data(df_raw)
+        
         self.teams = sorted(set(self.df['time'].unique()))
         
-        print(f"Dados carregados: {len(df_raw)} partidas originais, {len(self.df)} linhas processadas, {len(self.teams)} times")
+        print(f"Dados carregados: {len(self.df)} linhas processadas, {len(self.teams)} times")
         
         return self
     
