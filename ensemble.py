@@ -8,9 +8,10 @@ Pesos:
 """
 
 import numpy as np
-from dixon_coles import DixonColesModel, load_match_data as load_dc_data
-from offensive_defensive import OffensiveDefensiveModel, load_match_data as load_od_data
+from dixon_coles import DixonColesModel
+from offensive_defensive import OffensiveDefensiveModel
 from heuristicas import HeuristicasModel
+from data_loader import load_match_data  # Loader universal (DB primeiro)
 
 
 class EnsembleModel:
@@ -58,10 +59,16 @@ class EnsembleModel:
         
         print(f"Treinando ensemble para {league_display}...")
         
+        # Carrega dados uma vez (do banco se disponível, senão CSV)
+        try:
+            df = load_match_data(league_code=league_code)
+        except Exception as e:
+            print(f"ERRO ao carregar dados: {e}")
+            return self
+        
         # Dixon-Coles
         print("\n[1/3] Treinando Dixon-Coles...")
         try:
-            df = load_dc_data(league_code=league_code)
             self.models['dixon_coles'] = DixonColesModel(xi=0.003)
             self.models['dixon_coles'].fit(df, time_decay=True)
             print("OK - Dixon-Coles treinado")
@@ -72,7 +79,6 @@ class EnsembleModel:
         # Offensive-Defensive
         print("\n[2/3] Treinando Offensive-Defensive...")
         try:
-            df = load_od_data(league_code=league_code)
             self.models['offensive_defensive'] = OffensiveDefensiveModel(xi=0.003)
             self.models['offensive_defensive'].fit(df, time_decay=True)
             print("OK - Offensive-Defensive treinado")

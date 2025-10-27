@@ -410,7 +410,7 @@ def load_match_data_from_api(league_code=None):
         raise RuntimeError(f"Erro ao buscar dados da API: {e}")
 
 
-def load_match_data(league_code=None):
+def load_match_data_legacy(league_code=None):
     """
     Carrega dados de partidas do arquivo mais recente ou da API
     

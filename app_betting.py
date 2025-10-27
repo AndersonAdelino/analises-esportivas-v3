@@ -55,9 +55,26 @@ def check_data_freshness(league_code, max_age_hours=24):
         max_age_hours: Idade máxima dos dados em horas
         
     Returns:
-        tuple: (needs_update, last_update_time, file_path)
+        tuple: (needs_update, last_update_time, info)
     """
-    # Mapeia code para nome do arquivo
+    # NOVO: Verifica do banco de dados primeiro
+    try:
+        from database import get_database
+        db = get_database()
+        
+        last_update = db.get_last_update(league_code)
+        
+        if last_update:
+            update_time = datetime.fromisoformat(last_update['timestamp'])
+            age = datetime.now() - update_time
+            needs_update = age.total_seconds() > (max_age_hours * 3600)
+            
+            return needs_update, update_time, last_update
+    except Exception as e:
+        # Fallback para CSV se banco não disponível
+        pass
+    
+    # Fallback: Verifica CSV (método antigo)
     league_name_map = {info['code']: name.lower().replace(' ', '_').replace('ã', 'a').replace('é', 'e')
                       for name, info in config.LEAGUES.items()}
     league_prefix = league_name_map.get(league_code, 'league')
@@ -73,7 +90,7 @@ def check_data_freshness(league_code, max_age_hours=24):
     
     needs_update = age.total_seconds() > (max_age_hours * 3600)
     
-    return needs_update, file_time, latest_file
+    return needs_update, file_time, {'source': 'csv', 'file': latest_file}
 
 
 def update_league_data(league_code, league_name):

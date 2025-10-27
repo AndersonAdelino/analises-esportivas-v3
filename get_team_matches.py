@@ -207,7 +207,23 @@ def get_all_teams_matches(limit_per_team: int = 20, league_code: str = None):
             csv_filename = f'{league_prefix}_matches_{timestamp}.csv'
             csv_filepath = os.path.join('data', csv_filename)
             df_combined.to_csv(csv_filepath, index=False, encoding='utf-8')
-            print(f"  -> Salvo: {csv_filepath}")
+            print(f"  -> Salvo CSV: {csv_filepath}")
+            
+            # NOVO: Salvar também no banco de dados
+            try:
+                from database import get_database
+                db = get_database()
+                db_count = db.insert_matches(df_combined, league_code)
+                db.log_update(
+                    league_code,
+                    'api_fetch',
+                    matches_count=db_count,
+                    success=True,
+                    message=f'Collected {db_count} matches from API'
+                )
+                print(f"  -> Salvo DB:  {db_count} partidas persistidas no banco")
+            except Exception as e:
+                print(f"  [!] Aviso: Nao foi possivel salvar no banco: {e}")
             
             # Estatísticas resumidas
             print("\n" + "=" * 70)
