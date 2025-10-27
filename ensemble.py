@@ -138,9 +138,9 @@ class EnsembleModel:
                 
                 # Debug: confirmar se score_matrix foi atribuído
                 if predictions['dixon_coles']['score_matrix'] is not None:
-                    print(f"✓ Dixon-Coles: score_matrix atribuído com shape {predictions['dixon_coles']['score_matrix'].shape}")
+                    print(f"[OK] Dixon-Coles: score_matrix atribuido com shape {predictions['dixon_coles']['score_matrix'].shape}")
                 else:
-                    print(f"✗ Dixon-Coles: score_matrix é None")
+                    print(f"[X] Dixon-Coles: score_matrix e None")
                     
             except Exception as e:
                 print(f"Erro em Dixon-Coles: {e}")
@@ -169,9 +169,9 @@ class EnsembleModel:
                 
                 # Debug: confirmar se score_matrix foi atribuído
                 if predictions['offensive_defensive']['score_matrix'] is not None:
-                    print(f"✓ Offensive-Defensive: score_matrix atribuído com shape {predictions['offensive_defensive']['score_matrix'].shape}")
+                    print(f"[OK] Offensive-Defensive: score_matrix atribuido com shape {predictions['offensive_defensive']['score_matrix'].shape}")
                 else:
-                    print(f"✗ Offensive-Defensive: score_matrix é None")
+                    print(f"[X] Offensive-Defensive: score_matrix e None")
                     
             except Exception as e:
                 print(f"Erro em Offensive-Defensive: {e}")
