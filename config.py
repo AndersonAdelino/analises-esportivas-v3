@@ -24,35 +24,40 @@ LEAGUES = {
         'id': 2021,
         'name': 'Premier League',
         'country': 'England',
-        'flag': '🏴󠁧󠁢󠁥󠁮󠁧󠁿'
+        'flag': '[ENG]',  # Inglaterra
+        'icon': '⚽'
     },
     'Brasileirão Série A': {
         'code': 'BSA',
         'id': 2013,
         'name': 'Campeonato Brasileiro Série A',
         'country': 'Brazil',
-        'flag': '🇧🇷'
+        'flag': '[BRA]',  # Brasil
+        'icon': '🟢'
     },
     'La Liga': {
         'code': 'PD',
         'id': 2014,
         'name': 'Primera División',
         'country': 'Spain',
-        'flag': '🇪🇸'
+        'flag': '[ESP]',  # Espanha
+        'icon': '🔴'
     },
     'Serie A': {
         'code': 'SA',
         'id': 2019,
         'name': 'Serie A',
         'country': 'Italy',
-        'flag': '🇮🇹'
+        'flag': '[ITA]',  # Itália
+        'icon': '🔵'
     },
     'Primeira Liga': {
         'code': 'PPL',
         'id': 2017,
         'name': 'Primeira Liga',
         'country': 'Portugal',
-        'flag': '🇵🇹'
+        'flag': '[POR]',  # Portugal
+        'icon': '🟢'
     }
 }
 
