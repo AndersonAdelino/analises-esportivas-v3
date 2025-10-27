@@ -18,6 +18,18 @@ O sistema agora suporta **múltiplas ligas de futebol**, permitindo que você an
 - **Times**: 20 times
 - **Características**: Liga emocionante, muitos gols, jogos equilibrados
 
+### 3. La Liga 🇪🇸
+- **Código**: PD (Primera División)
+- **País**: Espanha
+- **Times**: 20 times
+- **Características**: Liga técnica, domínio de grandes times, muito talento
+
+### 4. Serie A 🇮🇹
+- **Código**: SA
+- **País**: Itália
+- **Times**: 20 times
+- **Características**: Liga tática, defesas fortes, jogos equilibrados
+
 ---
 
 ## 🚀 Como Usar
@@ -286,11 +298,11 @@ python get_brasileirao_data.py
 
 ## 🌟 Próximas Ligas (Futuro)
 
-Em desenvolvimento:
-- 🇪🇸 La Liga (Espanha)
+Em planejamento:
 - 🇩🇪 Bundesliga (Alemanha)
-- 🇮🇹 Serie A (Itália)
 - 🇫🇷 Ligue 1 (França)
+- 🇳🇱 Eredivisie (Holanda)
+- 🇵🇹 Primeira Liga (Portugal)
 
 **Quer contribuir?** O código está pronto para adicionar mais ligas facilmente!
 

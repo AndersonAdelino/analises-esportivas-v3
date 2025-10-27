@@ -5,6 +5,9 @@
 O sistema agora suporta:
 - 🏴󠁧󠁢󠁥󠁮󠁧󠁿 **Premier League** (Inglaterra)
 - 🇧🇷 **Brasileirão Série A** (Brasil)
+- 🇪🇸 **La Liga** (Espanha)
+- 🇮🇹 **Serie A** (Itália)
+- 🇵🇹 **Primeira Liga** (Portugal)
 
 **Selecione a liga diretamente na interface!**
 
@@ -46,6 +49,9 @@ streamlit run app_betting.py
 3. Escolha entre:
    - Premier League 🏴󠁧󠁢󠁥󠁮󠁧󠁿
    - Brasileirão Série A 🇧🇷
+   - La Liga 🇪🇸
+   - Serie A 🇮🇹
+   - Primeira Liga 🇵🇹
 4. Os modelos serão retreinados automaticamente
 5. Todas as análises mudam para a nova liga!
 

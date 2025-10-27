@@ -32,6 +32,27 @@ LEAGUES = {
         'name': 'Campeonato Brasileiro Série A',
         'country': 'Brazil',
         'flag': '🇧🇷'
+    },
+    'La Liga': {
+        'code': 'PD',
+        'id': 2014,
+        'name': 'Primera División',
+        'country': 'Spain',
+        'flag': '🇪🇸'
+    },
+    'Serie A': {
+        'code': 'SA',
+        'id': 2019,
+        'name': 'Serie A',
+        'country': 'Italy',
+        'flag': '🇮🇹'
+    },
+    'Primeira Liga': {
+        'code': 'PPL',
+        'id': 2017,
+        'name': 'Primeira Liga',
+        'country': 'Portugal',
+        'flag': '🇵🇹'
     }
 }
 

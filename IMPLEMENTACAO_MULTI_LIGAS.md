@@ -13,6 +13,8 @@ Status: **COMPLETO E FUNCIONAL**
 ✅ Adicionado dicionário `LEAGUES` com:
 - Premier League (PL, ID: 2021)
 - Brasileirão Série A (BSA, ID: 2013)
+- La Liga (PD, ID: 2014) - **NOVO!**
+- Serie A (SA, ID: 2019) - **NOVO!**
 - Flags, nomes e países
 - Variável `DEFAULT_LEAGUE`
 - Backward compatibility mantida
@@ -77,7 +79,7 @@ Status: **COMPLETO E FUNCIONAL**
 
 #### COLETAR_DADOS.bat
 ✅ Menu de seleção de liga
-✅ Opções: PL, BSA ou Ambas
+✅ Opções: PL, BSA, La Liga, Serie A ou Todas
 ✅ Instruções claras
 ✅ Chama scripts corretos
 

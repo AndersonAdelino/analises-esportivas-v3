@@ -6,6 +6,9 @@ Projeto de análise de dados esportivos utilizando dados históricos de **múlti
 
 - 🏴󠁧󠁢󠁥󠁮󠁧󠁿 **Premier League** (Inglaterra)
 - 🇧🇷 **Brasileirão Série A** (Brasil)
+- 🇪🇸 **La Liga** (Espanha)
+- 🇮🇹 **Serie A** (Itália)
+- 🇵🇹 **Primeira Liga** (Portugal)
 
 **Novo!** Sistema totalmente adaptado para múltiplas ligas com modelos separados e interface intuitiva!
 
@@ -20,7 +23,7 @@ Projeto de análise de dados esportivos utilizando dados históricos de **múlti
 - ✅ **Interface intuitiva e visual**
 
 ### Coleta e Análise de Dados
-- ✅ **🌎 Suporte a múltiplas ligas (Premier League + Brasileirão)**
+- ✅ **🌎 Suporte a múltiplas ligas (Premier League, Brasileirão, La Liga, Serie A, Primeira Liga)**
 - ✅ **🔄 Seletor de liga na interface web**
 - ✅ Busca de dados históricos de partidas
 - ✅ Exportação de dados em JSON e CSV
