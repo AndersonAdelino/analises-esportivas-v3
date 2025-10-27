@@ -29,7 +29,7 @@ def test_data_loading():
     print("=" * 70)
     
     try:
-        from dixon_coles import load_match_data
+        from data_loader import load_match_data
         
         # Tenta carregar Premier League
         print("\nCarregando dados da Premier League...")

@@ -1345,7 +1345,7 @@ def display_bankroll_input():
 
 def get_data_info(home_team, away_team, league_code):
     """Obtém informações sobre os dados utilizados na análise"""
-    from dixon_coles import load_match_data
+    from data_loader import load_match_data
     from config import LEAGUES
     
     try:
