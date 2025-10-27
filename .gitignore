@@ -43,7 +43,12 @@ ENV/
 data/*.csv
 data/*.json
 data/*.db
+data/cache/
 !data/.gitkeep
+
+# EXCEPTION: Keep persistent CSVs (survive reboots!)
+!data/persistent/
+!data/persistent/*.csv
 
 # Logs (NOVO!)
 logs/

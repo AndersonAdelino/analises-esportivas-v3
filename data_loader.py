@@ -12,11 +12,12 @@ import config
 
 def load_match_data(league_code=None):
     """
-    Carrega dados de partidas com prioridade para banco de dados
+    Carrega dados de partidas com sistema de persistência
     
     Ordem de prioridade:
-    1. Banco SQLite (persistente, rápido)
-    2. CSV mais recente (fallback)
+    1. CSV Persistente (data/persistent/*.csv) - Sobrevive a reboots ✅
+    2. Banco SQLite (data/cache/*.db) - Cache rápido se disponível
+    3. CSV Temporário (data/*.csv) - Fallback antigo
     
     Args:
         league_code: Código da liga (ex: 'PL', 'BSA')
@@ -29,8 +30,28 @@ def load_match_data(league_code=None):
     
     # Obtém nome da liga para exibição
     league_display = [name for name, info in config.LEAGUES.items() if info['code'] == league_code][0]
+    league_name_map = {info['code']: name.lower().replace(' ', '_').replace('ã', 'a').replace('é', 'e')
+                      for name, info in config.LEAGUES.items()}
+    league_prefix = league_name_map.get(league_code, 'league')
     
-    # PRIORIDADE 1: Tentar buscar do banco de dados
+    # PRIORIDADE 1: CSV Persistente (commitado no Git - SEMPRE disponível após deploy!)
+    persistent_csv = f'data/persistent/{league_prefix}_latest.csv'
+    if os.path.exists(persistent_csv):
+        try:
+            df = pd.read_csv(persistent_csv)
+            
+            # Verifica se tem as colunas necessárias
+            if all(col in df.columns for col in ['time_casa', 'time_visitante', 'gols_casa', 'gols_visitante', 'data']):
+                df_matches = df[['time_casa', 'time_visitante', 'gols_casa', 'gols_visitante', 'data']].copy()
+                df_matches['data'] = pd.to_datetime(df_matches['data'])
+                df_matches = df_matches.sort_values('data', ascending=False).reset_index(drop=True)
+                
+                print(f"[PERSISTENT] Carregados {len(df_matches)} jogos de {league_display} (dados permanentes)")
+                return df_matches
+        except Exception as e:
+            print(f"[!] Aviso: Erro ao carregar CSV persistente: {e}")
+    
+    # PRIORIDADE 2: Tentar buscar do banco de dados (cache rápido se disponível)
     try:
         from database import get_database
         db = get_database()
@@ -46,17 +67,13 @@ def load_match_data(league_code=None):
                 'data': pd.to_datetime(df['date'])
             })
             
-            print(f"[DB] Carregados {len(df_matches)} jogos de {league_display} do banco de dados")
+            print(f"[CACHE] Carregados {len(df_matches)} jogos de {league_display} do cache local")
             return df_matches
             
     except Exception as e:
-        print(f"[!] Aviso: Nao foi possivel carregar do banco: {e}")
-        print("[!] Tentando fallback para CSV...")
+        print(f"[!] Aviso: Cache local nao disponivel: {e}")
     
-    # PRIORIDADE 2: Fallback para CSV (método antigo)
-    league_name_map = {info['code']: name.lower().replace(' ', '_').replace('ã', 'a').replace('é', 'e')
-                      for name, info in config.LEAGUES.items()}
-    league_prefix = league_name_map.get(league_code, 'league')
+    # PRIORIDADE 3: Fallback para CSV temporário (método antigo)
     
     csv_pattern = f'data/{league_prefix}_matches_*.csv'
     csv_files = glob(csv_pattern)
