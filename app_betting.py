@@ -2016,14 +2016,21 @@ def main():
     with st.sidebar:
         st.header("⚙️ Configurações")
         
-        # Seletor de Liga
-        league_options = list(config.LEAGUES.keys())
-        selected_league_name = st.selectbox(
+        # Seletor de Liga com bandeiras dos países
+        league_options_display = [
+            f"{info['flag']} {name}"
+            for name, info in config.LEAGUES.items()
+        ]
+        
+        selected_display = st.selectbox(
             "🏆 Selecione a Liga",
-            options=league_options,
+            options=league_options_display,
             index=0,  # Premier League como padrão
             help="Escolha a liga para análise"
         )
+        
+        # Obtém nome real da liga (sem bandeira)
+        selected_league_name = selected_display.split(' ', 1)[1]  # Remove a bandeira
         
         # Obtém código da liga selecionada
         selected_league_code = config.LEAGUES[selected_league_name]['code']
@@ -2064,13 +2071,13 @@ def main():
         # Botão de atualização
         update_button = st.button(
             "📥 Atualizar Dados Agora",
-            help=f"Busca os dados mais recentes da {selected_league_name} via API (leva 2-3 minutos)",
+            help=f"Busca os dados mais recentes da {selected_league_flag} {selected_league_name} via API (leva 2-3 minutos)",
             type="primary" if needs_update else "secondary",
             use_container_width=True
         )
         
         if update_button:
-            with st.spinner(f"🔄 Coletando dados de {selected_league_name}...\n\nIsso levará ~2-3 minutos. Aguarde..."):
+            with st.spinner(f"🔄 Coletando dados de {selected_league_flag} {selected_league_name}...\n\nIsso levará ~2-3 minutos. Aguarde..."):
                 success, message, count = update_league_data(selected_league_code, selected_league_name)
                 
                 if success:
@@ -2087,8 +2094,8 @@ def main():
         st.markdown("---")
     
     # Título com liga selecionada
-    st.title(f"{selected_league_flag} Value Betting Analyzer")
-    st.markdown(f"**Liga: {selected_league_name}**")
+    st.title(f"⚽ Value Betting Analyzer")
+    st.markdown(f"**Liga: {selected_league_flag} {selected_league_name}**")
     st.markdown("**Sistema de Análise de Apostas com Ensemble de Modelos**")
     st.markdown("---")
     
@@ -2163,7 +2170,7 @@ def main():
                 models_status.append("❌ Heurísticas")
             
             # Exibe status
-            st.success(f"✅ Sistema carregado para {selected_league_name}!")
+            st.success(f"✅ Sistema carregado para {selected_league_flag} {selected_league_name}!")
             with st.expander("📊 Status dos Modelos", expanded=True):
                 col1, col2, col3 = st.columns(3)
                 with col1:
@@ -2186,7 +2193,7 @@ def main():
             st.stop()
         
         # Busca partidas
-        st.subheader(f"📅 Próximas Partidas - {selected_league_name}")
+        st.subheader(f"📅 Próximas Partidas - {selected_league_flag} {selected_league_name}")
         st.caption("🕐 Horários em UTC-3 (Brasília)")
         
         with st.spinner("Buscando próximas partidas..."):
