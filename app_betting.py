@@ -1682,38 +1682,33 @@ def analyze_and_display(ensemble, match, odds, bankroll, kelly_fraction):
                           analysis['prob_real'] == best_bet_analysis['prob_real'] and
                           analysis['ev']['ev_percent'] == best_bet_analysis['ev']['ev_percent'])
             
-            # Destaque visual especial para a MELHOR aposta
+            # Destaque visual elegante para a MELHOR aposta
             if is_best_bet:
-                st.markdown("---")
+                # Badge dourado discreto antes do expander
                 st.markdown("""
                 <div style='
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    padding: 20px;
-                    border-radius: 15px;
-                    border: 4px solid gold;
-                    box-shadow: 0 8px 32px rgba(255, 215, 0, 0.5);
-                    margin: 10px 0;
+                    display: inline-block;
+                    background: linear-gradient(90deg, #f59e0b, #d97706);
+                    color: white;
+                    padding: 8px 16px;
+                    border-radius: 20px;
+                    font-weight: bold;
+                    font-size: 14px;
+                    margin: 5px 0;
+                    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
                 '>
-                    <h2 style='color: white; text-align: center; margin: 0;'>
-                        🏆 MELHOR APOSTA DA PARTIDA 🏆
-                    </h2>
-                    <p style='color: #ffd700; text-align: center; font-size: 14px; margin: 5px 0 0 0;'>
-                        Maior EV + Probabilidade > 60%
-                    </p>
+                    🏆 MELHOR APOSTA (EV+ Alto + Prob>60%)
                 </div>
                 """, unsafe_allow_html=True)
-                
-                with st.container():
-                    st.markdown(f"### 🌟 {vb['market']}")
-                    st.markdown(f"#### 💰 APOSTE: R$ {analysis['stake_recommended']:.2f}")
+                expander_title = f"⭐ {vb['market']} - APOSTE R$ {vb['analysis']['stake_recommended']:.2f} ⭐"
+                expanded_state = True
             else:
-                # Expander normal para outras apostas
-                expanded_default = True if len(value_bets) <= 3 else False
+                expander_title = f"🎯 {vb['market']} - APOSTE R$ {vb['analysis']['stake_recommended']:.2f}"
+                expanded_state = True if len(value_bets) <= 3 else False
             
-            with st.expander(f"🎯 {vb['market']} - APOSTE R$ {vb['analysis']['stake_recommended']:.2f}", 
-                           expanded=True if not is_best_bet else False):
+            with st.expander(expander_title, expanded=expanded_state):
                 if is_best_bet:
-                    st.info("⭐ Esta é a aposta com MELHOR relação risco/retorno!")
+                    st.success("✨ **RECOMENDAÇÃO PREMIUM:** Melhor relação risco/retorno desta partida!")
                 
                 col1, col2, col3, col4 = st.columns(4)
                 
