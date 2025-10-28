@@ -2,13 +2,13 @@
 Controle de Versão do Sistema de Análises Esportivas
 """
 
-__version__ = "3.2.0"
+__version__ = "1.2.0"
 __version_name__ = "Ranking Edition"
 __release_date__ = "2025-10-28"
 
 # Changelog
 CHANGELOG = {
-    "3.2.0": {
+    "1.2.0": {
         "date": "2025-10-28",
         "name": "Ranking Edition",
         "features": [
@@ -21,7 +21,7 @@ CHANGELOG = {
             "Documentação completa"
         ]
     },
-    "3.1.0": {
+    "1.1.0": {
         "date": "2025-10",
         "name": "Multi-League Update",
         "features": [
@@ -31,14 +31,14 @@ CHANGELOG = {
             "Heatmaps de placares"
         ]
     },
-    "3.0.0": {
+    "1.0.0": {
         "date": "2025-09",
-        "name": "Betting Tools",
+        "name": "Initial Release",
         "features": [
             "Sistema de gerenciamento de banca",
             "Value betting e Kelly Criterion",
             "Interface Streamlit completa",
-            "3 modelos preditivos"
+            "3 modelos preditivos (Dixon-Coles, Offensive-Defensive, Heurísticas)"
         ]
     }
 }
