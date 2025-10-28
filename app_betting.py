@@ -1672,44 +1672,38 @@ def analyze_and_display(ensemble, match, odds, bankroll, kelly_fraction):
         analyses_list = [vb['analysis'] for vb in value_bets]
         best_bet_analysis = find_best_bet(analyses_list, min_prob=0.60)
         
-        st.success(f"✅ {len(value_bets)} Value Bet(s) identificado(s)!")
+        # Ordena apostas por EV% (maior primeiro)
+        value_bets_sorted = sorted(value_bets, key=lambda x: x['analysis']['ev']['ev_percent'], reverse=True)
         
-        for idx, vb in enumerate(value_bets):
+        st.success(f"✅ {len(value_bets_sorted)} Value Bet(s) identificado(s)!")
+        
+        for idx, vb in enumerate(value_bets_sorted):
             analysis = vb['analysis']
             
-            # Verifica se é a MELHOR aposta
+            # Verifica se é a MELHOR aposta (primeira da lista ordenada que atende critérios)
             is_best_bet = (best_bet_analysis is not None and 
                           analysis['prob_real'] == best_bet_analysis['prob_real'] and
                           analysis['ev']['ev_percent'] == best_bet_analysis['ev']['ev_percent'])
             
-            # Destaque visual elegante para a MELHOR aposta
+            # Container com borda dourada para a melhor aposta
             if is_best_bet:
-                # Badge dourado discreto antes do expander
                 st.markdown("""
-                <div style='
-                    display: inline-block;
-                    background: linear-gradient(90deg, #f59e0b, #d97706);
-                    color: white;
-                    padding: 8px 16px;
-                    border-radius: 20px;
-                    font-weight: bold;
-                    font-size: 14px;
-                    margin: 5px 0;
-                    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
-                '>
-                    🏆 MELHOR APOSTA (EV+ Alto + Prob>60%)
-                </div>
+                <style>
+                .best-bet-container {
+                    border: 3px solid gold;
+                    border-radius: 10px;
+                    padding: 5px;
+                    margin: 10px 0;
+                    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+                }
+                </style>
+                <div class="best-bet-container">
                 """, unsafe_allow_html=True)
-                expander_title = f"⭐ {vb['market']} - APOSTE R$ {vb['analysis']['stake_recommended']:.2f} ⭐"
-                expanded_state = True
-            else:
-                expander_title = f"🎯 {vb['market']} - APOSTE R$ {vb['analysis']['stake_recommended']:.2f}"
-                expanded_state = True if len(value_bets) <= 3 else False
+            
+            expander_title = f"🎯 {vb['market']} - APOSTE R$ {vb['analysis']['stake_recommended']:.2f}"
+            expanded_state = True if idx < 3 else False  # Expande as 3 primeiras
             
             with st.expander(expander_title, expanded=expanded_state):
-                if is_best_bet:
-                    st.success("✨ **RECOMENDAÇÃO PREMIUM:** Melhor relação risco/retorno desta partida!")
-                
                 col1, col2, col3, col4 = st.columns(4)
                 
                 with col1:
@@ -1739,6 +1733,10 @@ def analyze_and_display(ensemble, match, odds, bankroll, kelly_fraction):
                     if analysis.get('stake_limited', False):
                         st.warning("⚠️ Stake limitado a 12% (proteção)")
                     st.write(f"Lucro Potencial: **R$ {analysis['potential_profit']:.2f}**")
+            
+            # Fecha o container da borda dourada
+            if is_best_bet:
+                st.markdown("</div>", unsafe_allow_html=True)
     else:
         st.warning("⚠️ Nenhum Value Bet identificado nesta partida.")
         st.info("💡 Dica: As odds da casa estão justas ou desfavoráveis segundo nossos modelos.")
