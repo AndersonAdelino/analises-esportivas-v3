@@ -1667,11 +1667,53 @@ def analyze_and_display(ensemble, match, odds, bankroll, kelly_fraction):
     
     # Exibe value bets encontrados
     if value_bets:
+        # Identifica a MELHOR aposta
+        from betting_tools import find_best_bet
+        analyses_list = [vb['analysis'] for vb in value_bets]
+        best_bet_analysis = find_best_bet(analyses_list, min_prob=0.60)
+        
         st.success(f"✅ {len(value_bets)} Value Bet(s) identificado(s)!")
         
         for idx, vb in enumerate(value_bets):
-            with st.expander(f"🎯 {vb['market']} - APOSTE R$ {vb['analysis']['stake_recommended']:.2f}", expanded=True):
-                analysis = vb['analysis']
+            analysis = vb['analysis']
+            
+            # Verifica se é a MELHOR aposta
+            is_best_bet = (best_bet_analysis is not None and 
+                          analysis['prob_real'] == best_bet_analysis['prob_real'] and
+                          analysis['ev']['ev_percent'] == best_bet_analysis['ev']['ev_percent'])
+            
+            # Destaque visual especial para a MELHOR aposta
+            if is_best_bet:
+                st.markdown("---")
+                st.markdown("""
+                <div style='
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    padding: 20px;
+                    border-radius: 15px;
+                    border: 4px solid gold;
+                    box-shadow: 0 8px 32px rgba(255, 215, 0, 0.5);
+                    margin: 10px 0;
+                '>
+                    <h2 style='color: white; text-align: center; margin: 0;'>
+                        🏆 MELHOR APOSTA DA PARTIDA 🏆
+                    </h2>
+                    <p style='color: #ffd700; text-align: center; font-size: 14px; margin: 5px 0 0 0;'>
+                        Maior EV + Probabilidade > 60%
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                with st.container():
+                    st.markdown(f"### 🌟 {vb['market']}")
+                    st.markdown(f"#### 💰 APOSTE: R$ {analysis['stake_recommended']:.2f}")
+            else:
+                # Expander normal para outras apostas
+                expanded_default = True if len(value_bets) <= 3 else False
+            
+            with st.expander(f"🎯 {vb['market']} - APOSTE R$ {vb['analysis']['stake_recommended']:.2f}", 
+                           expanded=True if not is_best_bet else False):
+                if is_best_bet:
+                    st.info("⭐ Esta é a aposta com MELHOR relação risco/retorno!")
                 
                 col1, col2, col3, col4 = st.columns(4)
                 
@@ -1699,6 +1741,8 @@ def analyze_and_display(ensemble, match, odds, bankroll, kelly_fraction):
                     st.write(f"Banca: **R$ {analysis['bankroll']:.2f}**")
                     st.write(f"Apostar: **R$ {analysis['stake_recommended']:.2f}**")
                     st.write(f"% Banca: **{analysis['stake_percent']:.2f}%**")
+                    if analysis.get('stake_limited', False):
+                        st.warning("⚠️ Stake limitado a 12% (proteção)")
                     st.write(f"Lucro Potencial: **R$ {analysis['potential_profit']:.2f}**")
     else:
         st.warning("⚠️ Nenhum Value Bet identificado nesta partida.")

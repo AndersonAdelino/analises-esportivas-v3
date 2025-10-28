@@ -142,7 +142,7 @@ def calculate_stake(bankroll, kelly_percent):
     return bankroll * kelly_percent
 
 
-def analyze_bet(prob_win, odds_decimal, bankroll=100, kelly_fraction=0.25):
+def analyze_bet(prob_win, odds_decimal, bankroll=100, kelly_fraction=0.25, max_stake_percent=0.12):
     """
     Análise completa de uma aposta
     
@@ -151,6 +151,7 @@ def analyze_bet(prob_win, odds_decimal, bankroll=100, kelly_fraction=0.25):
         odds_decimal: Odds da casa
         bankroll: Banca total
         kelly_fraction: Fração de Kelly (recomendado: 0.25)
+        max_stake_percent: Percentual máximo da banca por aposta (padrão: 12%)
         
     Returns:
         Dict com análise completa
@@ -168,8 +169,15 @@ def analyze_bet(prob_win, odds_decimal, bankroll=100, kelly_fraction=0.25):
     # Kelly
     kelly = kelly_criterion(prob_win, odds_decimal, kelly_fraction)
     
-    # Valor a apostar
-    stake = calculate_stake(bankroll, kelly['kelly_adjusted'])
+    # Valor a apostar (Kelly)
+    stake_kelly = calculate_stake(bankroll, kelly['kelly_adjusted'])
+    
+    # Aplica limite máximo de 12%
+    stake_max = bankroll * max_stake_percent
+    stake = min(stake_kelly, stake_max)
+    
+    # Flag se foi limitado
+    stake_limited = stake < stake_kelly
     
     # Retorno esperado
     potential_profit = stake * (odds_decimal - 1)
@@ -186,10 +194,41 @@ def analyze_bet(prob_win, odds_decimal, bankroll=100, kelly_fraction=0.25):
         'bankroll': bankroll,
         'stake_recommended': stake,
         'stake_percent': (stake / bankroll) * 100,
+        'stake_limited': stake_limited,
         'potential_profit': potential_profit,
         'expected_return': expected_return,
         'is_value_bet': ev['is_value_bet'] and kelly['kelly_adjusted'] > 0.01
     }
+
+
+def find_best_bet(bets_analysis, min_prob=0.60):
+    """
+    Identifica a MELHOR aposta de uma lista
+    
+    Requisitos:
+    - Probabilidade > min_prob (padrão: 60%)
+    - Maior EV possível
+    
+    Args:
+        bets_analysis: Lista de dicts com análises de apostas
+        min_prob: Probabilidade mínima (0-1)
+        
+    Returns:
+        Dict da melhor aposta ou None se nenhuma qualificar
+    """
+    # Filtra apostas que atendem critério mínimo
+    qualified_bets = [
+        bet for bet in bets_analysis
+        if bet.get('prob_real', 0) > min_prob and bet.get('is_value_bet', False)
+    ]
+    
+    if not qualified_bets:
+        return None
+    
+    # Encontra a com maior EV
+    best_bet = max(qualified_bets, key=lambda x: x['ev']['ev_percent'])
+    
+    return best_bet
 
 
 def compare_odds(prob_win, odds_list):
