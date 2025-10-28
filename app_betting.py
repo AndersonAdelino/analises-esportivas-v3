@@ -1685,22 +1685,12 @@ def analyze_and_display(ensemble, match, odds, bankroll, kelly_fraction):
                           analysis['prob_real'] == best_bet_analysis['prob_real'] and
                           analysis['ev']['ev_percent'] == best_bet_analysis['ev']['ev_percent'])
             
-            # Container com borda dourada para a melhor aposta
+            # Título diferente para a melhor aposta
             if is_best_bet:
-                st.markdown("""
-                <style>
-                .best-bet-container {
-                    border: 3px solid gold;
-                    border-radius: 10px;
-                    padding: 5px;
-                    margin: 10px 0;
-                    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
-                }
-                </style>
-                <div class="best-bet-container">
-                """, unsafe_allow_html=True)
+                expander_title = f"🏆 {vb['market']} - APOSTE R$ {vb['analysis']['stake_recommended']:.2f} 🏆"
+            else:
+                expander_title = f"🎯 {vb['market']} - APOSTE R$ {vb['analysis']['stake_recommended']:.2f}"
             
-            expander_title = f"🎯 {vb['market']} - APOSTE R$ {vb['analysis']['stake_recommended']:.2f}"
             expanded_state = True if idx < 3 else False  # Expande as 3 primeiras
             
             with st.expander(expander_title, expanded=expanded_state):
@@ -1733,10 +1723,6 @@ def analyze_and_display(ensemble, match, odds, bankroll, kelly_fraction):
                     if analysis.get('stake_limited', False):
                         st.warning("⚠️ Stake limitado a 12% (proteção)")
                     st.write(f"Lucro Potencial: **R$ {analysis['potential_profit']:.2f}**")
-            
-            # Fecha o container da borda dourada
-            if is_best_bet:
-                st.markdown("</div>", unsafe_allow_html=True)
     else:
         st.warning("⚠️ Nenhum Value Bet identificado nesta partida.")
         st.info("💡 Dica: As odds da casa estão justas ou desfavoráveis segundo nossos modelos.")
