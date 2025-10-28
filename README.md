@@ -70,6 +70,20 @@ Projeto de análise de dados esportivos utilizando dados históricos de **múlti
 - ✅ **Gráfico de evolução da banca**
 - ✅ **Banco de dados SQLite persistente**
 
+### 🎯 Sistema de Ranqueamento de Apostas - NOVO! ⭐
+- ✅ **Ranqueamento inteligente de apostas usando múltiplos critérios**
+- ✅ **4 critérios de avaliação: EV%, Edge, P(modelo), Stake**
+- ✅ **3 perfis de apostador: Conservador, Moderado, Agressivo**
+- ✅ **Cálculo automático de stake usando Critério de Kelly ajustado**
+- ✅ **Score normalizado de 0-100 para cada aposta**
+- ✅ **Destaque automático da MELHOR aposta do dia**
+- ✅ **4 níveis de recomendação (Alto/Médio/Baixo/Não Apostar)**
+- ✅ **Interface Streamlit interativa e intuitiva**
+- ✅ **Análise de portfolio completo de apostas**
+- ✅ **Métricas de exposição e gestão de risco**
+- ✅ **Exportação para CSV**
+- ✅ **Totalmente testado (14 testes unitários)**
+
 
 ## 🚀 Instalação
 
@@ -231,6 +245,67 @@ forma = model.forma_recente('Arsenal FC', n_jogos=5)
 confronto = model.confronto_direto('Arsenal FC', 'Liverpool FC')
 ```
 
+### Usar o Sistema de Ranqueamento de Apostas 🎯
+
+**Interface Web (Streamlit):**
+```bash
+streamlit run app_ranking.py
+# ou
+EXECUTAR_RANKING.bat
+```
+
+**Código Python:**
+```python
+from betting_ranking import criar_sistema_ranking, ApostaInput
+
+# Criar sistema com perfil moderado
+sistema = criar_sistema_ranking(
+    perfil="moderado",  # conservador/moderado/agressivo
+    bankroll=1000.0,
+    stake_min=0.5,
+    stake_max=12.0
+)
+
+# Adicionar apostas
+apostas = [
+    ApostaInput(
+        id="1",
+        partida="Flamengo vs Palmeiras",
+        mercado="Resultado Final",
+        selecao="Flamengo",
+        odds=2.10,
+        p_model=0.52,      # Probabilidade do seu modelo
+        ev_percent=9.2,    # Expected Value em %
+        edge=4.5           # Edge sobre a casa
+    ),
+    # ... mais apostas
+]
+
+# Ranquear apostas
+ranqueadas = sistema.ranquear_apostas(apostas)
+
+# Ver resultados
+for aposta in ranqueadas:
+    if aposta.recomendacao.value != "NÃO_APOSTAR":
+        print(f"{aposta.partida}")
+        print(f"  Score: {aposta.score:.1f}/100")
+        print(f"  Stake: R$ {aposta.stake_final:.2f}")
+        print(f"  Recomendação: {aposta.recomendacao.value}")
+
+# Gerar relatório completo
+relatorio = sistema.gerar_relatorio(ranqueadas, top_n=5)
+print(relatorio)
+```
+
+**Ver Exemplos Completos:**
+```bash
+python exemplo_ranking_completo.py  # 7 exemplos práticos
+```
+
+**Documentação Completa:**
+- `GUIA_SISTEMA_RANQUEAMENTO.md` - Guia detalhado do sistema
+- `IMPLEMENTACAO_SISTEMA_RANQUEAMENTO.md` - Detalhes técnicos
+
 ## 📁 Estrutura do Projeto
 
 ```
@@ -272,8 +347,17 @@ analises_esportivas_v3/
 ├── app_betting.py                     # 🌐 Interface Web Streamlit (com análise de times!)
 ├── ensemble.py                        # Ensemble dos 3 modelos
 ├── betting_tools.py                   # EV e Kelly Criterion
-├── bankroll_manager.py                # 💰 Gerenciador de banca (NOVO!)
-├── test_bankroll_system.py            # 🧪 Teste do sistema de banca (NOVO!)
+├── bankroll_manager.py                # 💰 Gerenciador de banca
+├── test_bankroll_system.py            # 🧪 Teste do sistema de banca
+│
+├── # === SISTEMA DE RANQUEAMENTO ===
+├── betting_ranking.py                 # 🎯 Motor de ranqueamento de apostas (NOVO!)
+├── app_ranking.py                     # 🌐 Interface Streamlit do ranqueamento (NOVO!)
+├── test_ranking_system.py             # 🧪 Testes do sistema (14 testes) (NOVO!)
+├── exemplo_ranking_completo.py        # 📚 7 exemplos de uso (NOVO!)
+├── GUIA_SISTEMA_RANQUEAMENTO.md       # 📖 Guia completo do sistema (NOVO!)
+├── IMPLEMENTACAO_SISTEMA_RANQUEAMENTO.md  # 📋 Detalhes técnicos (NOVO!)
+├── EXECUTAR_RANKING.bat               # 🚀 Inicia interface de ranking (NOVO!)
 │
 ├── # === DOCUMENTAÇÃO ===
 ├── README.md                          # Este arquivo

@@ -439,3 +439,4 @@ Para dúvidas ou problemas:
 
 🎉 **PARABÉNS! Você tem agora um sistema de análise esportiva profissional, testado e validado matematicamente para 4 ligas europeias!** ⚽📊💰
 
+

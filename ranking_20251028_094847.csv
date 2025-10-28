@@ -1,0 +1,6 @@
+﻿Rank,Partida,Mercado,Selecao,Odds,P_Modelo,EV_Percent,Edge,Score,Stake_R$,Stake_%,Recomendacao,Destaque
+1,Jogo 5,Resultado,Casa,2.5,0.6,10.0,4.5,100.0,120.0,12.0,APOSTAR_ALTO,Sim
+2,Jogo 4,Resultado,Casa,2.4,0.58,9.0,4.0,78.75,120.0,12.0,APOSTAR_ALTO,Não
+3,Jogo 3,Resultado,Casa,2.3,0.56,8.0,3.5,55.73,110.77,11.08,APOSTAR_MEDIO,Não
+4,Jogo 2,Resultado,Casa,2.2,0.54,7.0,3.0,28.26,78.33,7.83,APOSTAR_BAIXO,Não
+5,Jogo 1,Resultado,Casa,2.1,0.52,6.0,2.5,0.0,41.82,4.18,NÃO_APOSTAR,Não

@@ -1,0 +1,105 @@
+Iniciando teste...
+
+[BRASILEIRAO]
+2025-10-26 14:31:08.556 
+Warning: the config option 'server.enableCORS=false' is not compatible with
+'server.enableXsrfProtection=true'.
+As a result, 'server.enableCORS' is being overridden to 'true'.
+
+More information:
+In order to protect against CSRF attacks, we send a cookie with each request.
+To do so, we must specify allowable origins, which places a restriction on
+cross-origin resource sharing.
+
+If cross origin resource sharing is required, please disable server.enableXsrfProtection.
+            
+Treinando ensemble para Brasileirão Série A...
+
+[1/3] Treinando Dixon-Coles...
+Carregando dados de: data\brasileirao_série_a_matches_20251025_075556.csv
+Treinando modelo Dixon-Coles...
+- Times: 20
+- Partidas: 379
+- Decaimento temporal: True (xi=0.003)
+Otimizacao concluida com sucesso!
+- Home advantage: 0.300
+- Rho (correlacao): 0.115
+OK - Dixon-Coles treinado
+
+[2/3] Treinando Offensive-Defensive...
+Carregando dados de: data\brasileirao_série_a_matches_20251025_075556.csv
+Treinando modelo Offensive-Defensive...
+- Times: 20
+- Partidas: 379
+- Decaimento temporal: True (xi=0.003)
+AVISO: Otimizacao nao convergiu completamente: Desired error not necessarily achieved due to precision loss.
+- Home advantage: 0.299
+OK - Offensive-Defensive treinado
+
+[3/3] Carregando Heuristicas...
+Carregando dados de: data\brasileirao_série_a_matches_20251025_075556.csv
+Dados já normalizados (formato time/adversario/local)
+Dados carregados: 379 linhas processadas, 20 times
+OK - Heuristicas carregadas
+
+Ensemble treinado com sucesso para Brasileirão Série A!
+
+Analisando: Botafogo FR vs Santos FC
+======================================================================
+Casa: 68.67%
+Empate: 18.08%
+Fora: 13.25%
+OK - Brasileirao validado
+
+[PREMIER LEAGUE]
+Treinando ensemble para Premier League...
+
+[1/3] Treinando Dixon-Coles...
+Carregando dados de: data\premier_league_matches_20251025_081039.csv
+Treinando modelo Dixon-Coles...
+- Times: 20
+- Partidas: 162
+- Decaimento temporal: True (xi=0.003)
+Otimizacao concluida com sucesso!
+- Home advantage: 0.272
+- Rho (correlacao): -0.150
+OK - Dixon-Coles treinado
+
+[2/3] Treinando Offensive-Defensive...
+Carregando dados de: data\premier_league_matches_20251025_081039.csv
+Treinando modelo Offensive-Defensive...
+- Times: 20
+- Partidas: 162
+- Decaimento temporal: True (xi=0.003)
+Otimizacao concluida com sucesso!
+- Home advantage: 0.274
+OK - Offensive-Defensive treinado
+
+[3/3] Carregando Heuristicas...
+Carregando dados de: data\premier_league_matches_20251025_081039.csv
+Dados já normalizados (formato time/adversario/local)
+Dados carregados: 162 linhas processadas, 20 times
+OK - Heuristicas carregadas
+
+Ensemble treinado com sucesso para Premier League!
+
+Analisando: Arsenal FC vs Liverpool FC
+======================================================================
+Casa: 69.96%
+Empate: 21.24%
+Fora: 8.80%
+OK - Premier League validado
+
+================================================================================
+RESULTADO FINAL
+================================================================================
+
+ERROS ENCONTRADOS: 0
+
+VERIFICADO:
+  [OK] Sem NaN
+  [OK] Sem Inf
+  [OK] Probabilidades no intervalo [0, 1]
+  [OK] Soma de probabilidades = 1.0
+
+*** SISTEMA MATEMATICAMENTE CORRETO ***
