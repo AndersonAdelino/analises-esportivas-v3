@@ -20,6 +20,7 @@ import config
 import numpy as np
 import os
 from glob import glob
+from version import get_version
 
 # Fuso horário de Brasília (UTC-3)
 BRASILIA_TZ = timezone(timedelta(hours=-3))
@@ -2139,6 +2140,10 @@ def main():
         
         st.markdown("---")
         st.info("💡 **Dica:** Use Kelly Fraction de 0.25 para ser conservador.")
+        
+        # Versão do sistema
+        st.markdown("---")
+        st.caption(f"Sistema {get_version()}")
     
     # Cria abas principais
     tab1, tab2, tab3 = st.tabs([

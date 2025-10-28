@@ -14,6 +14,7 @@ from betting_ranking import (
     PerfilApostador,
     criar_sistema_ranking
 )
+from version import get_version, get_full_version_string
 
 
 # Configuração da página
@@ -209,6 +210,10 @@ def main():
             st.write(f"**Edge:** {p['Edge']}%")
             st.write(f"**P(model):** {p['P(model)]}%")
             st.write(f"**Stake:** {p['Stake']}%")
+        
+        # Versão do sistema (no final da sidebar)
+        st.divider()
+        st.caption(f"Sistema {get_version()}")
     
     # Área principal
     tab1, tab2, tab3 = st.tabs(["📊 Ranqueamento", "➕ Adicionar Apostas", "📚 Como Usar"])
