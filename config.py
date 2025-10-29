@@ -58,6 +58,14 @@ LEAGUES = {
         'country': 'Portugal',
         'flag': '[POR]',  # Portugal
         'icon': '🟢'
+    },
+    'Ligue 1': {
+        'code': 'FL1',
+        'id': 2015,
+        'name': 'Ligue 1',
+        'country': 'France',
+        'flag': '[FRA]',  # França
+        'icon': '🔵'
     }
 }
 
