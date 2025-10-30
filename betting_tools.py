@@ -496,7 +496,7 @@ def calculate_bet_quality_score(analysis, consensus_level=None):
     return round(score, 1)
 
 
-def get_bet_warnings(analysis, consensus_level=None, divergence_kl=None):
+def get_bet_warnings(analysis, consensus_level=None, divergence_kl=None, dynamic_max_stake=None):
     """
     Gera lista de avisos baseados em métricas de risco
     
@@ -504,6 +504,7 @@ def get_bet_warnings(analysis, consensus_level=None, divergence_kl=None):
         analysis: Dict retornado por analyze_bet()
         consensus_level: Nível de consenso entre modelos (0-100)
         divergence_kl: Divergência KL entre modelos
+        dynamic_max_stake: Stake máximo dinâmico calculado para esta aposta (0.03-0.10)
     
     Returns:
         list: Lista de avisos (strings)
@@ -542,11 +543,24 @@ def get_bet_warnings(analysis, consensus_level=None, divergence_kl=None):
         elif divergence_kl > 0.20:
             warnings.append('⚠️ Divergência moderada entre modelos')
     
-    # Aviso 6: Stake alto
-    if analysis['stake_percent'] > 4:
-        warnings.append('⚠️ Stake > 4% da banca - Considere REDUZIR!')
-    elif analysis['stake_percent'] > 3:
-        warnings.append('⚠️ Stake > 3% da banca - Risco elevado')
+    # Aviso 6: Stake alto (AJUSTADO PARA SISTEMA DINÂMICO)
+    if dynamic_max_stake is not None:
+        # Avisa se stake está muito próximo ou excede o limite dinâmico
+        stake_percent = analysis['stake_percent']
+        max_stake_percent = dynamic_max_stake * 100
+        
+        # Crítico: stake excede o limite dinâmico
+        if stake_percent > max_stake_percent:
+            warnings.append(f'🚨 Stake EXCEDE o limite dinâmico de {max_stake_percent:.1f}% - REDUZIR OBRIGATÓRIO!')
+        # Atenção: stake está muito alto em relação ao limite (>90% do máximo)
+        elif stake_percent > (max_stake_percent * 0.9):
+            warnings.append(f'⚠️ Stake próximo do limite ({max_stake_percent:.1f}%) - Use com cautela!')
+    else:
+        # Fallback: se não houver stake dinâmico, usa limites fixos conservadores
+        if analysis['stake_percent'] > 6:
+            warnings.append('⚠️ Stake > 6% da banca - Risco ALTO!')
+        elif analysis['stake_percent'] > 4:
+            warnings.append('⚠️ Stake > 4% da banca - Risco elevado')
     
     # Aviso 7: Kelly muito baixo
     if 0 < analysis['kelly']['kelly_adjusted'] < 0.015:

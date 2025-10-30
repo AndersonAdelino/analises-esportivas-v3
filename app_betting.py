@@ -1678,7 +1678,7 @@ def analyze_and_display(ensemble, match, odds, bankroll, kelly_fraction):
             # Calcula score de qualidade
             score = calculate_bet_quality_score(analysis, consensus_level)
             quality_level, emoji, color, recommendation = get_quality_level(score)
-            warnings = get_bet_warnings(analysis, consensus_level, divergence_kl)
+            warnings = get_bet_warnings(analysis, consensus_level, divergence_kl, dynamic_max_stake=dynamic_stake)
             is_quality = is_high_quality_bet(analysis)
             
             bet_info = {
