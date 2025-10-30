@@ -43,6 +43,14 @@ LEAGUES = {
         'flag': '[ESP]',  # Espanha
         'icon': '🔴'
     },
+    'Bundesliga': {
+        'code': 'BL1',
+        'id': 2002,
+        'name': 'Bundesliga',
+        'country': 'Germany',
+        'flag': '[GER]',  # Alemanha
+        'icon': '⚫'
+    },
     'Serie A': {
         'code': 'SA',
         'id': 2019,
