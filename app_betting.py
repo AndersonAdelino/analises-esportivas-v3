@@ -14,7 +14,14 @@ import plotly.express as px
 from datetime import datetime, timedelta, timezone
 from api_client import FootballDataClient
 from ensemble import EnsembleModel
-from betting_tools import analyze_bet, print_bet_analysis
+from betting_tools import (
+    analyze_bet, 
+    print_bet_analysis,
+    calculate_bet_quality_score,
+    get_bet_warnings,
+    get_quality_level,
+    is_high_quality_bet
+)
 from bingo_analyzer import BingoAnalyzer
 import config
 import numpy as np
@@ -1630,7 +1637,7 @@ def analyze_and_display(ensemble, match, odds, bankroll, kelly_fraction):
         st.metric("❌ BTTS Não", f"{(1-ens['prob_btts'])*100:.1f}%")
     
     # Análise de cada mercado
-    st.subheader("💡 Análise de Value Bets")
+    st.subheader("💡 Análise de Value Bets com Filtros de Qualidade")
     
     markets = [
         ('🏠 Vitória Casa', ens['prob_casa'], odds['casa']),
@@ -1642,58 +1649,115 @@ def analyze_and_display(ensemble, match, odds, bankroll, kelly_fraction):
         ('❌ BTTS Não', 1 - ens['prob_btts'], odds['btts_no'])
     ]
     
-    value_bets = []
+    # NOVO: Calcula consenso dos modelos
+    consensus_metrics = calculate_consensus(prediction)
+    consensus_level = consensus_metrics['consensus_level']
+    
+    # NOVO: Calcula divergência
+    divergence_metrics = calculate_model_divergence(prediction)
+    divergence_kl = divergence_metrics['kl_divergence_avg']
+    
+    # Classifica apostas por qualidade
+    high_quality_bets = []
+    acceptable_bets = []
+    low_quality_bets = []
     
     for market_name, prob, odd in markets:
         analysis = analyze_bet(prob, odd, bankroll, kelly_fraction)
         
         if analysis['is_value_bet']:
-            value_bets.append({
+            # NOVO: Calcula score de qualidade
+            score = calculate_bet_quality_score(analysis, consensus_level)
+            quality_level, emoji, color, recommendation = get_quality_level(score)
+            warnings = get_bet_warnings(analysis, consensus_level, divergence_kl)
+            is_quality = is_high_quality_bet(analysis)
+            
+            bet_info = {
                 'market': market_name,
-                'analysis': analysis
-            })
+                'analysis': analysis,
+                'score': score,
+                'quality_level': quality_level,
+                'emoji': emoji,
+                'recommendation': recommendation,
+                'warnings': warnings,
+                'is_high_quality': is_quality
+            }
             
-            # Salvar no cache do bingo
-            st.session_state.bingo_analyzer.add_analysis(
-                match_info={
-                    'home_team': home_team,
-                    'away_team': away_team,
-                    'date': match.get('date', ''),
-                    'match_id': f"{home_team}_vs_{away_team}"
-                },
-                bet_type=market_name,
-                analysis=analysis
-            )
-    
-    # Exibe value bets encontrados
-    if value_bets:
-        # Identifica a MELHOR aposta
-        from betting_tools import find_best_bet
-        analyses_list = [vb['analysis'] for vb in value_bets]
-        best_bet_analysis = find_best_bet(analyses_list, min_prob=0.60)
-        
-        # Ordena apostas por EV% (maior primeiro)
-        value_bets_sorted = sorted(value_bets, key=lambda x: x['analysis']['ev']['ev_percent'], reverse=True)
-        
-        st.success(f"✅ {len(value_bets_sorted)} Value Bet(s) identificado(s)!")
-        
-        for idx, vb in enumerate(value_bets_sorted):
-            analysis = vb['analysis']
-            
-            # Verifica se é a MELHOR aposta (primeira da lista ordenada que atende critérios)
-            is_best_bet = (best_bet_analysis is not None and 
-                          analysis['prob_real'] == best_bet_analysis['prob_real'] and
-                          analysis['ev']['ev_percent'] == best_bet_analysis['ev']['ev_percent'])
-            
-            # Título diferente para a melhor aposta
-            if is_best_bet:
-                expander_title = f"🏆 {vb['market']} - APOSTE R$ {vb['analysis']['stake_recommended']:.2f} 🏆"
+            # Classifica por score
+            if score >= 70:
+                high_quality_bets.append(bet_info)
+            elif score >= 55:
+                acceptable_bets.append(bet_info)
             else:
-                expander_title = f"🎯 {vb['market']} - APOSTE R$ {vb['analysis']['stake_recommended']:.2f}"
+                low_quality_bets.append(bet_info)
             
-            expanded_state = True if idx < 3 else False  # Expande as 3 primeiras
+            # Salvar no cache do bingo (apenas as de qualidade)
+            if score >= 55:
+                st.session_state.bingo_analyzer.add_analysis(
+                    match_info={
+                        'home_team': home_team,
+                        'away_team': away_team,
+                        'date': match.get('date', ''),
+                        'match_id': f"{home_team}_vs_{away_team}"
+                    },
+                    bet_type=market_name,
+                    analysis=analysis
+                )
+    
+    # NOVO: Exibe métricas de consenso no topo
+    st.markdown("---")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        if consensus_level >= 80:
+            st.success(f"📊 **Consenso:** {consensus_level:.1f}% (ALTO)")
+        elif consensus_level >= 65:
+            st.info(f"📊 **Consenso:** {consensus_level:.1f}% (Moderado)")
+        else:
+            st.warning(f"📊 **Consenso:** {consensus_level:.1f}% (BAIXO)")
+    
+    with col2:
+        if divergence_kl < 0.15:
+            st.success(f"🎯 **Divergência:** {divergence_kl:.3f} (Baixa)")
+        elif divergence_kl < 0.25:
+            st.info(f"🎯 **Divergência:** {divergence_kl:.3f} (Moderada)")
+        else:
+            st.warning(f"🎯 **Divergência:** {divergence_kl:.3f} (ALTA)")
+    
+    with col3:
+        total_value_bets = len(high_quality_bets) + len(acceptable_bets) + len(low_quality_bets)
+        if len(high_quality_bets) > 0:
+            st.success(f"✅ **{len(high_quality_bets)}** apostas de ALTA qualidade")
+        elif len(acceptable_bets) > 0:
+            st.info(f"⚠️ **{len(acceptable_bets)}** apostas aceitáveis")
+        else:
+            st.warning(f"❌ Nenhuma aposta de qualidade encontrada")
+    
+    st.markdown("---")
+    
+    # NOVO: Exibe apostas de ALTA qualidade primeiro
+    if high_quality_bets:
+        st.success(f"🟢 **{len(high_quality_bets)} APOSTA(S) DE ALTA QUALIDADE** (Score ≥ 70)")
+        st.caption("✅ Recomendado apostar nessas!")
+        
+        # Ordena por score (maior primeiro)
+        high_quality_bets_sorted = sorted(high_quality_bets, key=lambda x: x['score'], reverse=True)
+        
+        for idx, bet in enumerate(high_quality_bets_sorted):
+            analysis = bet['analysis']
             
-            with st.expander(expander_title, expanded=expanded_state):
+            # Título com emoji de qualidade
+            expander_title = f"{bet['emoji']} {bet['market']} - Score: {bet['score']:.0f}/100 - APOSTE R$ {analysis['stake_recommended']:.2f}"
+            
+            with st.expander(expander_title, expanded=True):
+                # Header com score
+                st.markdown(f"### {bet['emoji']} **Qualidade: {bet['quality_level']}** - {bet['recommendation']}")
+                
+                # Avisos (se houver)
+                if bet['warnings']:
+                    with st.container():
+                        for warning in bet['warnings']:
+                            st.warning(warning)
+                
                 col1, col2, col3, col4 = st.columns(4)
                 
                 with col1:
@@ -1721,11 +1785,77 @@ def analyze_and_display(ensemble, match, odds, bankroll, kelly_fraction):
                     st.write(f"Apostar: **R$ {analysis['stake_recommended']:.2f}**")
                     st.write(f"% Banca: **{analysis['stake_percent']:.2f}%**")
                     if analysis.get('stake_limited', False):
-                        st.warning("⚠️ Stake limitado a 12% (proteção)")
+                        st.warning("⚠️ Stake limitado a 5% (proteção)")
                     st.write(f"Lucro Potencial: **R$ {analysis['potential_profit']:.2f}**")
-    else:
+                
+                # Footer com score detalhado
+                st.markdown("---")
+                st.info(f"📊 **Score Total:** {bet['score']:.1f}/100 | **Consenso:** {consensus_level:.1f}% | **Divergência KL:** {divergence_kl:.3f}")
+    
+    # NOVO: Exibe apostas ACEITÁVEIS (score 55-69)
+    if acceptable_bets:
+        st.markdown("---")
+        with st.expander(f"🟡 **{len(acceptable_bets)} Aposta(s) Aceitáveis** (Score 55-69) - ⚠️ Aposte com CAUTELA", expanded=False):
+            st.warning("⚠️ **ATENÇÃO:** Estas apostas têm value, mas são de qualidade inferior. Aposte com cuidado!")
+            
+            acceptable_bets_sorted = sorted(acceptable_bets, key=lambda x: x['score'], reverse=True)
+            
+            for bet in acceptable_bets_sorted:
+                analysis = bet['analysis']
+                
+                st.markdown(f"### {bet['emoji']} {bet['market']} - Score: {bet['score']:.0f}/100")
+                
+                # Avisos
+                if bet['warnings']:
+                    for warning in bet['warnings']:
+                        st.warning(warning)
+                
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.write(f"**Odds:** {analysis['odds']:.2f}")
+                    st.write(f"**Prob:** {analysis['prob_real']*100:.1f}%")
+                with col2:
+                    st.write(f"**EV%:** {analysis['ev']['ev_percent']:+.2f}%")
+                    st.write(f"**Edge:** {analysis['edge_percent']:+.1f}%")
+                with col3:
+                    st.write(f"**Apostar:** R$ {analysis['stake_recommended']:.2f}")
+                    st.write(f"**% Banca:** {analysis['stake_percent']:.2f}%")
+                
+                st.markdown("---")
+    
+    # NOVO: Exibe apostas de BAIXA qualidade (apenas informativo)
+    if low_quality_bets:
+        st.markdown("---")
+        with st.expander(f"🔴 **{len(low_quality_bets)} Aposta(s) de Baixa Qualidade** (Score < 55) - ❌ NÃO RECOMENDADO", expanded=False):
+            st.error("❌ **NÃO APOSTE nessas!** Value muito marginal e/ou alto risco.")
+            
+            low_quality_bets_sorted = sorted(low_quality_bets, key=lambda x: x['score'], reverse=True)
+            
+            for bet in low_quality_bets_sorted:
+                analysis = bet['analysis']
+                
+                st.markdown(f"### {bet['emoji']} {bet['market']} - Score: {bet['score']:.0f}/100")
+                
+                # Mostra por que NÃO apostar
+                if bet['warnings']:
+                    st.markdown("**Por que NÃO apostar:**")
+                    for warning in bet['warnings']:
+                        st.error(warning)
+                
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.write(f"**EV%:** {analysis['ev']['ev_percent']:+.2f}%")
+                with col2:
+                    st.write(f"**Prob:** {analysis['prob_real']*100:.1f}%")
+                with col3:
+                    st.write(f"**Edge:** {analysis['edge_percent']:+.1f}%")
+                
+                st.markdown("---")
+    
+    # Se nenhuma aposta de qualidade foi encontrada
+    if not high_quality_bets and not acceptable_bets and not low_quality_bets:
         st.warning("⚠️ Nenhum Value Bet identificado nesta partida.")
-        st.info("💡 Dica: As odds da casa estão justas ou desfavoráveis segundo nossos modelos.")
+        st.info("💡 **Dica:** As odds da casa estão justas ou desfavoráveis segundo nossos modelos.")
     
     # Tabela resumo de todos os mercados
     st.subheader("📋 Resumo de Todos os Mercados")

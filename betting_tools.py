@@ -142,7 +142,7 @@ def calculate_stake(bankroll, kelly_percent):
     return bankroll * kelly_percent
 
 
-def analyze_bet(prob_win, odds_decimal, bankroll=100, kelly_fraction=0.25, max_stake_percent=0.12):
+def analyze_bet(prob_win, odds_decimal, bankroll=100, kelly_fraction=0.25, max_stake_percent=0.05):
     """
     Análise completa de uma aposta
     
@@ -151,7 +151,7 @@ def analyze_bet(prob_win, odds_decimal, bankroll=100, kelly_fraction=0.25, max_s
         odds_decimal: Odds da casa
         bankroll: Banca total
         kelly_fraction: Fração de Kelly (recomendado: 0.25)
-        max_stake_percent: Percentual máximo da banca por aposta (padrão: 12%)
+        max_stake_percent: Percentual máximo da banca por aposta (padrão: 5% - REDUZIDO!)
         
     Returns:
         Dict com análise completa
@@ -172,7 +172,7 @@ def analyze_bet(prob_win, odds_decimal, bankroll=100, kelly_fraction=0.25, max_s
     # Valor a apostar (Kelly)
     stake_kelly = calculate_stake(bankroll, kelly['kelly_adjusted'])
     
-    # Aplica limite máximo de 12%
+    # Aplica limite máximo de 5% (REDUZIDO de 12% para maior segurança)
     stake_max = bankroll * max_stake_percent
     stake = min(stake_kelly, stake_max)
     
@@ -310,6 +310,229 @@ def print_bet_analysis(analysis, bet_name="Aposta"):
     print(f"{'='*80}\n")
 
 
+def is_high_quality_bet(analysis, min_ev=5.0, min_prob=0.40, min_kelly=0.02, min_edge=3.0):
+    """
+    Verifica se uma aposta atende critérios de QUALIDADE RIGOROSOS
+    
+    Esta função implementa filtros mais rigorosos para reduzir perdas.
+    Apenas apostas que atendem TODOS os critérios são aprovadas.
+    
+    Args:
+        analysis: Resultado de analyze_bet()
+        min_ev: EV% mínimo (padrão: 5%)
+        min_prob: Probabilidade mínima (padrão: 40%)
+        min_kelly: Kelly ajustado mínimo (padrão: 2%)
+        min_edge: Edge% mínimo (padrão: 3%)
+    
+    Returns:
+        bool: True se atende todos os critérios
+    """
+    return (
+        analysis['ev']['ev_percent'] >= min_ev and
+        analysis['prob_real'] >= min_prob and
+        analysis['kelly']['kelly_adjusted'] >= min_kelly and
+        analysis['edge_percent'] >= min_edge and
+        analysis['is_value_bet']
+    )
+
+
+def calculate_bet_quality_score(analysis, consensus_level=None):
+    """
+    Calcula score de qualidade (0-100) baseado em múltiplos fatores
+    
+    Score considera:
+    - EV% (peso: 30%)
+    - Edge% (peso: 25%)
+    - Probabilidade (peso: 20%)
+    - Kelly% (peso: 15%)
+    - Consenso entre modelos (peso: 10%) - se disponível
+    
+    Classificação:
+    - 85-100: Excelente (aposte com confiança)
+    - 70-84:  Boa (aposte)
+    - 55-69:  Aceitável (considere)
+    - < 55:   Fraca (evite)
+    
+    Args:
+        analysis: Dict retornado por analyze_bet()
+        consensus_level: Nível de consenso entre modelos (0-100)
+    
+    Returns:
+        float: Score 0-100
+    """
+    score = 0.0
+    
+    # 1. EV% (0-30 pontos)
+    ev_pct = analysis['ev']['ev_percent']
+    if ev_pct >= 15:
+        score += 30
+    elif ev_pct >= 12:
+        score += 27
+    elif ev_pct >= 10:
+        score += 25
+    elif ev_pct >= 8:
+        score += 22
+    elif ev_pct >= 7:
+        score += 20
+    elif ev_pct >= 5:
+        score += 15
+    elif ev_pct >= 3:
+        score += 10
+    elif ev_pct > 0:
+        score += 5
+    
+    # 2. Edge% (0-25 pontos)
+    edge_pct = analysis['edge_percent']
+    if edge_pct >= 10:
+        score += 25
+    elif edge_pct >= 8:
+        score += 22
+    elif edge_pct >= 7:
+        score += 20
+    elif edge_pct >= 5:
+        score += 15
+    elif edge_pct >= 3:
+        score += 10
+    elif edge_pct > 0:
+        score += 5
+    
+    # 3. Probabilidade (0-20 pontos)
+    prob = analysis['prob_real']
+    if prob >= 0.70:
+        score += 20
+    elif prob >= 0.65:
+        score += 19
+    elif prob >= 0.60:
+        score += 18
+    elif prob >= 0.55:
+        score += 16
+    elif prob >= 0.50:
+        score += 15
+    elif prob >= 0.45:
+        score += 12
+    elif prob >= 0.40:
+        score += 8
+    elif prob >= 0.35:
+        score += 4
+    
+    # 4. Kelly% (0-15 pontos)
+    kelly_adj = analysis['kelly']['kelly_adjusted']
+    if kelly_adj >= 0.08:
+        score += 15
+    elif kelly_adj >= 0.06:
+        score += 13
+    elif kelly_adj >= 0.05:
+        score += 12
+    elif kelly_adj >= 0.04:
+        score += 10
+    elif kelly_adj >= 0.03:
+        score += 9
+    elif kelly_adj >= 0.02:
+        score += 6
+    elif kelly_adj > 0:
+        score += 3
+    
+    # 5. Consenso entre modelos (0-10 pontos) - NOVO CRITÉRIO
+    if consensus_level is not None:
+        if consensus_level >= 85:
+            score += 10
+        elif consensus_level >= 80:
+            score += 9
+        elif consensus_level >= 75:
+            score += 8
+        elif consensus_level >= 70:
+            score += 7
+        elif consensus_level >= 65:
+            score += 6
+        elif consensus_level >= 60:
+            score += 4
+        elif consensus_level >= 50:
+            score += 2
+        else:
+            score += 0  # Penaliza baixo consenso
+    
+    return round(score, 1)
+
+
+def get_bet_warnings(analysis, consensus_level=None, divergence_kl=None):
+    """
+    Gera lista de avisos baseados em métricas de risco
+    
+    Args:
+        analysis: Dict retornado por analyze_bet()
+        consensus_level: Nível de consenso entre modelos (0-100)
+        divergence_kl: Divergência KL entre modelos
+    
+    Returns:
+        list: Lista de avisos (strings)
+    """
+    warnings = []
+    
+    # Aviso 1: Probabilidade baixa
+    if analysis['prob_real'] < 0.40:
+        warnings.append('⚠️ Probabilidade < 40% - RISCO MUITO ALTO!')
+    elif analysis['prob_real'] < 0.45:
+        warnings.append('⚠️ Probabilidade < 45% - Risco alto')
+    
+    # Aviso 2: EV muito baixo
+    if 0 < analysis['ev']['ev_percent'] < 3:
+        warnings.append('⚠️ EV% < 3% - Value MUITO marginal')
+    elif 0 < analysis['ev']['ev_percent'] < 5:
+        warnings.append('⚠️ EV% < 5% - Value marginal')
+    
+    # Aviso 3: Edge pequeno
+    if 0 < analysis['edge_percent'] < 2:
+        warnings.append('⚠️ Edge < 2% - Vantagem MÍNIMA')
+    elif 0 < analysis['edge_percent'] < 3:
+        warnings.append('⚠️ Edge < 3% - Vantagem pequena')
+    
+    # Aviso 4: Baixo consenso entre modelos
+    if consensus_level is not None:
+        if consensus_level < 60:
+            warnings.append('⚠️ BAIXO CONSENSO (<60%) - Modelos DIVERGEM!')
+        elif consensus_level < 70:
+            warnings.append('⚠️ Consenso moderado (<70%) - Alguma incerteza')
+    
+    # Aviso 5: Alta divergência KL
+    if divergence_kl is not None:
+        if divergence_kl > 0.30:
+            warnings.append('⚠️ ALTA DIVERGÊNCIA - Modelos discordam significativamente!')
+        elif divergence_kl > 0.20:
+            warnings.append('⚠️ Divergência moderada entre modelos')
+    
+    # Aviso 6: Stake alto
+    if analysis['stake_percent'] > 4:
+        warnings.append('⚠️ Stake > 4% da banca - Considere REDUZIR!')
+    elif analysis['stake_percent'] > 3:
+        warnings.append('⚠️ Stake > 3% da banca - Risco elevado')
+    
+    # Aviso 7: Kelly muito baixo
+    if 0 < analysis['kelly']['kelly_adjusted'] < 0.015:
+        warnings.append('⚠️ Kelly < 1.5% - Value questionável')
+    
+    return warnings
+
+
+def get_quality_level(score):
+    """
+    Retorna nível de qualidade baseado no score
+    
+    Args:
+        score: Score 0-100
+    
+    Returns:
+        tuple: (nivel, emoji, cor, recomendacao)
+    """
+    if score >= 85:
+        return ('Excelente', '🟢', 'green', 'APOSTE COM CONFIANÇA!')
+    elif score >= 70:
+        return ('Boa', '🟡', 'yellow', 'APOSTE')
+    elif score >= 55:
+        return ('Aceitável', '🟠', 'orange', 'CONSIDERE (com cautela)')
+    else:
+        return ('Fraca', '🔴', 'red', 'EVITE')
+
+
 if __name__ == "__main__":
     print("\n")
     print("=" * 80)
@@ -327,8 +550,21 @@ if __name__ == "__main__":
     analysis = analyze_bet(prob_win, odds, bankroll, kelly_fraction=0.25)
     print_bet_analysis(analysis, "Vitoria Time A @ 2.00")
     
+    # Testa novo sistema de qualidade
+    score = calculate_bet_quality_score(analysis, consensus_level=80)
+    quality, emoji, _, recom = get_quality_level(score)
+    warnings = get_bet_warnings(analysis, consensus_level=80)
+    
+    print(f"\nSCORE DE QUALIDADE: {score}/100 ({quality})")
+    print(f"RECOMENDACAO: {recom}")
+    if warnings:
+        print("\nAVISOS:")
+        for w in warnings:
+            # Remove emojis para compatibilidade com Windows console
+            print(f"  {w}".encode('ascii', errors='ignore').decode('ascii'))
+    
     # Exemplo 2: Não é value
-    print("\nEXEMPLO 2: Nao eh Value Bet")
+    print("\n\nEXEMPLO 2: Nao eh Value Bet")
     print("-" * 80)
     prob_win = 0.40  # Modelo diz 40%
     odds = 2.00      # Casa paga 2.00 (implica 50%)
@@ -336,12 +572,36 @@ if __name__ == "__main__":
     analysis = analyze_bet(prob_win, odds, bankroll, kelly_fraction=0.25)
     print_bet_analysis(analysis, "Vitoria Time B @ 2.00")
     
+    # Exemplo 3: Value bet marginal (baixa qualidade)
+    print("\n\nEXEMPLO 3: Value Bet Marginal (Baixa Qualidade)")
+    print("-" * 80)
+    prob_win = 0.36  # Modelo diz 36%
+    odds = 2.90      # Casa paga 2.90 (implica 34.5%)
+    
+    analysis = analyze_bet(prob_win, odds, bankroll, kelly_fraction=0.25)
+    print_bet_analysis(analysis, "Vitoria Time C @ 2.90")
+    
+    score = calculate_bet_quality_score(analysis, consensus_level=55)
+    quality, emoji, _, recom = get_quality_level(score)
+    warnings = get_bet_warnings(analysis, consensus_level=55, divergence_kl=0.28)
+    is_quality = is_high_quality_bet(analysis)
+    
+    print(f"\nSCORE DE QUALIDADE: {score}/100 ({quality})")
+    print(f"RECOMENDACAO: {recom}")
+    print(f"ATENDE CRITERIOS DE QUALIDADE: {'SIM' if is_quality else 'NAO'}")
+    if warnings:
+        print("\nAVISOS:")
+        for w in warnings:
+            # Remove emojis para compatibilidade com Windows console
+            print(f"  {w}".encode('ascii', errors='ignore').decode('ascii'))
+    
     print("\n" + "=" * 80)
     print("EXEMPLOS CONCLUIDOS")
     print("=" * 80)
     print("\nUso programatico:")
-    print("  from betting_tools import analyze_bet")
+    print("  from betting_tools import analyze_bet, calculate_bet_quality_score")
     print("  analysis = analyze_bet(prob_win=0.65, odds_decimal=2.20, bankroll=1000)")
-    print("  print_bet_analysis(analysis)")
+    print("  score = calculate_bet_quality_score(analysis, consensus_level=75)")
+    print("  print(f'Score: {score}/100')")
     print()
 
