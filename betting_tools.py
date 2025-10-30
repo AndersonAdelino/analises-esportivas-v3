@@ -142,6 +142,47 @@ def calculate_stake(bankroll, kelly_percent):
     return bankroll * kelly_percent
 
 
+def calculate_dynamic_max_stake(score, consensus_level):
+    """
+    Calcula stake máximo dinâmico baseado em qualidade da aposta
+    
+    SISTEMA INTELIGENTE:
+    - Arrisca MAIS (até 10%) apenas em apostas EXCELENTES
+    - Arrisca MENOS (3%) em apostas marginais
+    - Considera score E consenso para máxima segurança
+    
+    Args:
+        score: Score de qualidade 0-100
+        consensus_level: Nível de consenso entre modelos (0-100)
+    
+    Returns:
+        float: Stake máximo (0.03 a 0.10)
+    """
+    # TIER 1: EXCELENTE (10% - apenas para as MELHORES)
+    if score >= 85 and consensus_level >= 80:
+        return 0.10  # 10% - Máxima confiança
+    
+    # TIER 2: MUITO BOM (8%)
+    elif score >= 80 and consensus_level >= 75:
+        return 0.08  # 8% - Alta confiança
+    
+    # TIER 3: BOM (6%)
+    elif score >= 75 and consensus_level >= 70:
+        return 0.06  # 6% - Boa confiança
+    
+    # TIER 4: ACEITÁVEL (5%)
+    elif score >= 70 and consensus_level >= 65:
+        return 0.05  # 5% - Confiança moderada
+    
+    # TIER 5: MARGINAL (4%)
+    elif score >= 65 and consensus_level >= 60:
+        return 0.04  # 4% - Baixa confiança
+    
+    # TIER 6: FRACO (3%)
+    else:
+        return 0.03  # 3% - Mínimo (apostas arriscadas)
+
+
 def analyze_bet(prob_win, odds_decimal, bankroll=100, kelly_fraction=0.25, max_stake_percent=0.05):
     """
     Análise completa de uma aposta
@@ -151,7 +192,8 @@ def analyze_bet(prob_win, odds_decimal, bankroll=100, kelly_fraction=0.25, max_s
         odds_decimal: Odds da casa
         bankroll: Banca total
         kelly_fraction: Fração de Kelly (recomendado: 0.25)
-        max_stake_percent: Percentual máximo da banca por aposta (padrão: 5% - REDUZIDO!)
+        max_stake_percent: Percentual máximo da banca por aposta (padrão: 5%)
+                          NOTA: Use calculate_dynamic_max_stake() para stake inteligente!
         
     Returns:
         Dict com análise completa

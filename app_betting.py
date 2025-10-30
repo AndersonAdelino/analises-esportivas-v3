@@ -20,7 +20,8 @@ from betting_tools import (
     calculate_bet_quality_score,
     get_bet_warnings,
     get_quality_level,
-    is_high_quality_bet
+    is_high_quality_bet,
+    calculate_dynamic_max_stake
 )
 from bingo_analyzer import BingoAnalyzer
 import config
@@ -1663,10 +1664,18 @@ def analyze_and_display(ensemble, match, odds, bankroll, kelly_fraction):
     low_quality_bets = []
     
     for market_name, prob, odd in markets:
-        analysis = analyze_bet(prob, odd, bankroll, kelly_fraction)
+        # PRIMEIRO: Calcula score preliminar para determinar stake dinâmico
+        analysis_prelim = analyze_bet(prob, odd, bankroll, kelly_fraction, max_stake_percent=0.05)
+        score_prelim = calculate_bet_quality_score(analysis_prelim, consensus_level)
+        
+        # STAKE DINÂMICO: 3-10% baseado em score e consenso
+        dynamic_stake = calculate_dynamic_max_stake(score_prelim, consensus_level)
+        
+        # AGORA: Calcula análise final com stake dinâmico
+        analysis = analyze_bet(prob, odd, bankroll, kelly_fraction, max_stake_percent=dynamic_stake)
         
         if analysis['is_value_bet']:
-            # NOVO: Calcula score de qualidade
+            # Calcula score de qualidade
             score = calculate_bet_quality_score(analysis, consensus_level)
             quality_level, emoji, color, recommendation = get_quality_level(score)
             warnings = get_bet_warnings(analysis, consensus_level, divergence_kl)
@@ -1680,7 +1689,8 @@ def analyze_and_display(ensemble, match, odds, bankroll, kelly_fraction):
                 'emoji': emoji,
                 'recommendation': recommendation,
                 'warnings': warnings,
-                'is_high_quality': is_quality
+                'is_high_quality': is_quality,
+                'dynamic_stake_pct': dynamic_stake  # NOVO: Mostra stake dinâmico usado
             }
             
             # Classifica por score
@@ -1752,6 +1762,29 @@ def analyze_and_display(ensemble, match, odds, bankroll, kelly_fraction):
                 # Header com score
                 st.markdown(f"### {bet['emoji']} **Qualidade: {bet['quality_level']}** - {bet['recommendation']}")
                 
+                # NOVO: Indicador de Stake Dinâmico
+                stake_pct = bet['dynamic_stake_pct'] * 100
+                if stake_pct >= 10:
+                    stake_tier = "🔥 TIER 1 (Máximo)"
+                    stake_color = "red"
+                elif stake_pct >= 8:
+                    stake_tier = "⚡ TIER 2 (Muito Alto)"
+                    stake_color = "orange"
+                elif stake_pct >= 6:
+                    stake_tier = "🟡 TIER 3 (Alto)"
+                    stake_color = "yellow"
+                elif stake_pct >= 5:
+                    stake_tier = "🟢 TIER 4 (Moderado)"
+                    stake_color = "green"
+                elif stake_pct >= 4:
+                    stake_tier = "🔵 TIER 5 (Baixo)"
+                    stake_color = "blue"
+                else:
+                    stake_tier = "⚪ TIER 6 (Mínimo)"
+                    stake_color = "gray"
+                
+                st.info(f"📊 **Stake Dinâmico:** {stake_tier} - Limite: {stake_pct:.0f}% da banca")
+                
                 # Avisos (se houver)
                 if bet['warnings']:
                     with st.container():
@@ -1785,7 +1818,7 @@ def analyze_and_display(ensemble, match, odds, bankroll, kelly_fraction):
                     st.write(f"Apostar: **R$ {analysis['stake_recommended']:.2f}**")
                     st.write(f"% Banca: **{analysis['stake_percent']:.2f}%**")
                     if analysis.get('stake_limited', False):
-                        st.warning("⚠️ Stake limitado a 5% (proteção)")
+                        st.warning(f"⚠️ Stake limitado a {stake_pct:.0f}% (proteção dinâmica)")
                     st.write(f"Lucro Potencial: **R$ {analysis['potential_profit']:.2f}**")
                 
                 # Footer com score detalhado
