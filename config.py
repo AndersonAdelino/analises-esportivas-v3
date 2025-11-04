@@ -74,6 +74,14 @@ LEAGUES = {
         'country': 'France',
         'flag': '[FRA]',  # França
         'icon': '🔵'
+    },
+    'Champions League': {
+        'code': 'CL',
+        'id': 2001,
+        'name': 'UEFA Champions League',
+        'country': 'Europe',
+        'flag': '[UEFA]',  # UEFA
+        'icon': '🏆'
     }
 }
 
